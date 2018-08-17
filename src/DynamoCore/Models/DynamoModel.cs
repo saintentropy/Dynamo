@@ -1490,7 +1490,7 @@ namespace Dynamo.Models
         /// <param name="forceManualExecutionMode">Set this to true to discard
         /// execution mode specified in the file and set manual mode</param>
         /// <returns>True if workspace was opened successfully</returns>
-        private bool OpenJsonFileFromPath(string fileContents, string filePath, bool forceManualExecutionMode)
+        public bool OpenJsonFileFromPath(string fileContents, string filePath, bool forceManualExecutionMode)
         {
             try
             {
