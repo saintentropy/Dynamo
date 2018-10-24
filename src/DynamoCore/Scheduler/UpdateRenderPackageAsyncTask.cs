@@ -170,7 +170,7 @@ namespace Dynamo.Scheduler
                     return;
                 }
 
-                var package = factory.CreateRenderPackage();
+                var package = factory.CreateRenderPackage(false);
                 var packageWithTransform = package as ITransformable;
                 package.Description = tag;
 
