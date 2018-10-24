@@ -27,9 +27,9 @@ namespace Dynamo.Wpf.Rendering
             };
         }
 
-        public IRenderPackage CreateRenderPackage()
+        public IRenderPackage CreateRenderPackage(bool autoIncrimentIdices = true)
         {
-            return new HelixRenderPackage();
+            return new HelixRenderPackage(autoIncrimentIdices);
         }
     }
 

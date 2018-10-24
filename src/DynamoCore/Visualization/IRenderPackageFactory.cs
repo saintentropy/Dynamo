@@ -18,6 +18,6 @@ namespace Dynamo.Visualization
         /// <summary>
         /// Create an IRenderPackage object of the type manufactured by this factory.
         /// </summary>
-        IRenderPackage CreateRenderPackage();
+        IRenderPackage CreateRenderPackage(bool autoIncrimentIndices = true);
     }
 }
