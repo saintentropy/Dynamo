@@ -149,6 +149,11 @@ namespace Autodesk.DesignScript.Interfaces
         void AddTriangleVertexUV(double u, double v);
 
         /// <summary>
+        /// Add a triangle indices to the render package.
+        /// </summary>
+        void AddTriangleIndex(int index);
+
+        /// <summary>
         /// Add a triangle vertex color to the render package.
         /// </summary>
         void AddTriangleVertexColor(byte red, byte green, byte blue, byte alpha);

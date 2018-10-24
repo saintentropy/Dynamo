@@ -44,6 +44,7 @@ namespace Dynamo.Wpf.Rendering
         private LineGeometry3D lines;
         private MeshGeometry3D mesh;
         private bool hasData;
+        private readonly bool _autoIncrimentIndices;
         private List<int> lineStripVertexCounts;
         private byte[] colors;
         
@@ -51,13 +52,15 @@ namespace Dynamo.Wpf.Rendering
 
         #region constructors
 
-        public HelixRenderPackage()
+        public HelixRenderPackage(bool autoIncrimentIndices = true)
         {
             points = InitPointGeometry();
             lines = InitLineGeometry();
             mesh = InitMeshGeometry();
             lineStripVertexCounts = new List<int>();
             Transform = System.Windows.Media.Media3D.Matrix3D.Identity.ToArray();
+            _autoIncrimentIndices = autoIncrimentIndices;
+
         }
 
         #endregion
@@ -217,8 +220,15 @@ namespace Dynamo.Wpf.Rendering
         /// </summary>
         public void AddTriangleVertex(double x, double y, double z)
         {
-            mesh.Indices.Add(mesh.Indices.Count);
+            if (_autoIncrimentIndices)
+                mesh.Indices.Add(mesh.Indices.Count);
             mesh.Positions.Add(Vector3ForYUp(x, y, z));
+        }
+
+        public void AddTriangleIndex(int index)
+        {
+            if (!_autoIncrimentIndices)
+                mesh.Indices.Add(index);
         }
 
         /// <summary>

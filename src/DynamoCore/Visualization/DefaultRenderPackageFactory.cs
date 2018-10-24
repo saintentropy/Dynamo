@@ -29,7 +29,7 @@ namespace Dynamo.Visualization
         /// Creates DefaultRenderPackage.
         /// </summary>
         /// <returns>DefaultRenderPackage</returns>
-        public IRenderPackage CreateRenderPackage()
+        public IRenderPackage CreateRenderPackage(bool autoIncrimentIdices = true)
         {
             return new DefaultRenderPackage();
         }
@@ -41,6 +41,7 @@ namespace Dynamo.Visualization
     /// </summary>
     public class DefaultRenderPackage : IRenderPackage
     {
+        private readonly bool _autoIncrimentIndices;
         private List<double> pointVertices = new List<double>();
         private List<byte> pointColors = new List<byte>();
         private List<int> pointIndices = new List<int>();
@@ -57,6 +58,12 @@ namespace Dynamo.Visualization
 
         private List<int> lineStripVertexCounts = new List<int>();
         private byte[] colors;
+
+        public DefaultRenderPackage(bool autoIncrimentIndices = true)
+        {
+            _autoIncrimentIndices = autoIncrimentIndices;
+        }
+
 
         /// <summary>
         /// Add a point vertex to the render package.
@@ -88,7 +95,8 @@ namespace Dynamo.Visualization
             meshVertices.Add(x);
             meshVertices.Add(y);
             meshVertices.Add(z);
-            meshIndices.Add(meshVertices.Count - 1);
+            if (_autoIncrimentIndices)
+                meshIndices.Add(meshVertices.Count - 1);
         }
 
         /// <summary>
@@ -108,6 +116,12 @@ namespace Dynamo.Visualization
         {
             meshTexCoordinates.Add(u);
             meshTexCoordinates.Add(v);
+        }
+
+        public void AddTriangleIndex(int index)
+        {
+            if (!_autoIncrimentIndices)
+                meshIndices.Add(index);
         }
 
         /// <summary>
