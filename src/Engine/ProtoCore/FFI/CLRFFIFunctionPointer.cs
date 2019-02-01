@@ -473,10 +473,12 @@ namespace ProtoFFI
             return string.Format(Resources.OperationFailType2, ReflectionInfo.DeclaringType.Name, ReflectionInfo.Name, msg);
         }
 
-        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi)
+        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi, List<StackValue> s = null)
         {
             List<Object> parameters = new List<object>();
-            List<StackValue> s = dsi.runtime.rmem.Stack;
+            if(s == null)
+                s = dsi.runtime.rmem.Stack;
+
             Object thisObject = null;
             FFIObjectMarshaler marshaller = Module.GetMarshaler(dsi.runtime.RuntimeCore);
             if (!ReflectionInfo.IsStatic)
@@ -504,7 +506,8 @@ namespace ProtoFFI
                 // Comment Jun: FFI function stack frames do not contain locals
                 int locals = 0;
                 int relative = 0 - ProtoCore.DSASM.StackFrame.StackFrameSize - locals - i - 1;
-                StackValue opArg = dsi.runtime.rmem.GetAtRelative(relative);
+                var opArg = s[i];
+                //StackValue opArg = dsi.runtime.rmem.GetAtRelative(relative);
                 try
                 {
                     Type paramType = paraminfos[i].Info.ParameterType;
@@ -643,9 +646,11 @@ namespace ProtoFFI
         {
         }
 
-        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi)
+        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi, List<StackValue> s = null)
         {
-            List<StackValue> s = dsi.runtime.rmem.Stack;
+            if (s == null)
+                s = dsi.runtime.rmem.Stack;
+
             FFIObjectMarshaler marshaller = Module.GetMarshaler(dsi.runtime.RuntimeCore);
 
             var thisObject = marshaller.UnMarshal(s.Last(), c, dsi, ReflectionInfo.DeclaringType);
@@ -693,16 +698,16 @@ namespace ProtoFFI
             }
         }
 
-        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi)
+        public override object Execute(ProtoCore.Runtime.Context c, Interpreter dsi, List<StackValue> s = null)
         {
-            Object retVal = base.Execute(c, dsi);
+            Object retVal = base.Execute(c, dsi, s);
             if (retVal == null)
             {
                 return null;
             }
 
             StackValue propValue = (StackValue)retVal;
-            StackValue thisObject = dsi.runtime.rmem.Stack.Last();
+            var thisObject = s?.Last() ?? dsi.runtime.rmem.Stack.Last();
 
             bool isValidPointer = thisObject.IsPointer && thisObject.Pointer != Constants.kInvalidIndex;
             if (isValidPointer && propValue.IsReferenceType)
