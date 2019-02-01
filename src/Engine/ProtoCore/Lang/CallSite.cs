@@ -17,6 +17,7 @@ using ProtoCore.Properties;
 using ProtoCore.Runtime;
 using WarningID = ProtoCore.Runtime.WarningID;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace ProtoCore
 {
@@ -1736,53 +1737,102 @@ namespace ProtoCore
                     return ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame, runtimeCore, previousTraceData, newTraceData, finalFunctionEndPoint);
                 }
 
-                //Now iterate over each of these options
-                for (int i = 0; i < retSize; i++)
+
+                if (replicationInstructions.Count == 1)
                 {
-                    //Build the call
-                    List<StackValue> newFormalParams = new List<StackValue>();
-                    newFormalParams.AddRange(formalParameters);
-
-                    if (parameters != null)
+                    Parallel.For(0, retSize, i =>
                     {
-                        //It was an array pack the arg with the current value
-                        newFormalParams[cartIndex] = parameters[i];
-                    }
+                        List<StackValue> newFormalParams = new List<StackValue>();
+                        newFormalParams.AddRange(formalParameters);
 
-                    List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
-                    newRIs.AddRange(replicationInstructions);
-                    newRIs.RemoveAt(0);
+                        if (parameters != null)
+                        {
+                            //It was an array pack the arg with the current value
+                            newFormalParams[cartIndex] = parameters[i];
+                        }
 
+                        SingleRunTraceData lastExecTrace;
 
-                    SingleRunTraceData lastExecTrace;
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        {
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
+                        }
+                        else if (previousTraceData.HasData && i == 0)
+                        {
+                            //We've moved up one dimension, and there was a previous run
+                            lastExecTrace = new SingleRunTraceData();
+                            lastExecTrace.Data = previousTraceData.GetLeftMostData();
 
-                    if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //previousTraceData = lastExecTrace;
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithZeroRI(functionEndPoint, c, newFormalParams, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
+
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
+                    });
+                }
+                else
+                {
+                    //Now iterate over each of these options
+                    for (int i = 0; i < retSize; i++)
                     {
-                        //There was previous data that needs loading into the cache
-                        lastExecTrace = previousTraceData.NestedData[i];
+                        //Build the call
+                        List<StackValue> newFormalParams = new List<StackValue>();
+                        newFormalParams.AddRange(formalParameters);
+
+                        if (parameters != null)
+                        {
+                            //It was an array pack the arg with the current value
+                            newFormalParams[cartIndex] = parameters[i];
+                        }
+
+                        List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
+                        newRIs.AddRange(replicationInstructions);
+                        newRIs.RemoveAt(0);
+
+
+                        SingleRunTraceData lastExecTrace;
+
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        {
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
+                        }
+                        else if (previousTraceData.HasData && i == 0)
+                        {
+                            //We've moved up one dimension, and there was a previous run
+                            lastExecTrace = new SingleRunTraceData();
+                            lastExecTrace.Data = previousTraceData.GetLeftMostData();
+
+                        }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //previousTraceData = lastExecTrace;
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame,
+                            runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
+
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
                     }
-                    else if (previousTraceData.HasData && i == 0)
-                    {
-                        //We've moved up one dimension, and there was a previous run
-                        lastExecTrace = new SingleRunTraceData();
-                        lastExecTrace.Data = previousTraceData.GetLeftMostData();
-
-                    }
-                    else
-                    {
-                        //We're off the edge of the previous trace window
-                        //So just pass in an empty block
-                        lastExecTrace = new SingleRunTraceData();
-                    }
-
-                    //previousTraceData = lastExecTrace;
-                    SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
-
-                    retSVs[i] = ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
-
-                    runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
-
-                    retTrace.NestedData[i] = cleanRetTrace;
                 }
 
                 try
