@@ -53,9 +53,11 @@ namespace ProtoCore.Lang
             //  we are always looking and putting our function pointers in handler with each lang
             //  so better lock for FFIHandler (being static) it  will be good object to lock
             //  
-            lock (FFIHandlers)
+            //lock (FFIHandlers)
             {
                 Interpreter interpreter = new Interpreter(runtimeCore, true);
+
+                var localStack = new List<StackValue>();
 
                 // Setup the stack frame data
                 StackValue svThisPtr = stackFrame.ThisPtr;
@@ -128,10 +130,11 @@ namespace ProtoCore.Lang
                     activation.JILRecord.globs = runtimeCore.DSExecutable.runtimeSymbols[runtimeCore.RunningBlock].GetGlobalSize();
 
                     // Params
-                    formalParameters.Reverse();
+                    //formalParameters.Reverse();
                     for (int i = 0; i < formalParameters.Count; i++)
                     {
-                        interpreter.Push(formalParameters[i]);
+                        //interpreter.Push(formalParameters[i]);
+                        localStack.Add(formalParameters[i]);
                     }
 
                     List<StackValue> registers = interpreter.runtime.GetRegisters();
@@ -142,16 +145,21 @@ namespace ProtoCore.Lang
                     StackFrameType callerType = stackFrame.CallerStackFrameType;
 
                     // FFI calls do not have execution states
-                    runtimeCore.RuntimeMemory.PushFrameForLocals(locals);
+                    //runtimeCore.RuntimeMemory.PushFrameForLocals(locals);
                     StackFrame newStackFrame = new StackFrame(svThisPtr, ci, fi, returnAddr, blockDecl, blockCaller, callerType, StackFrameType.Function, depth, framePointer, 0, registers, 0);
-                    runtimeCore.RuntimeMemory.PushStackFrame(newStackFrame);
+                    //runtimeCore.RuntimeMemory.PushStackFrame(newStackFrame);
+
+                    for (int i = StackFrame.StackFrameSize - 1; i >= 0; i--)
+                    {
+                        localStack.Add(newStackFrame.Frame[i]);
+                    }
 
                     //is there a way the current stack be passed across and back into the managed runtime by FFI calling back into the language?
                     //e.g. DCEnv* carrying all the stack information? look at how vmkit does this.
                     // = jilMain.Run(ActivationRecord.JILRecord.pc, null, true);
 
                     //double[] tempArray = GetUnderlyingArray<double>(jilMain.runtime.rmem.stack);
-                    Object ret = mFunctionPointer.Execute(c, interpreter);
+                    Object ret = mFunctionPointer.Execute(c, interpreter, localStack);
                     StackValue op;
                     if (ret == null)
                     {
@@ -177,8 +185,8 @@ namespace ProtoCore.Lang
 
                     // Clear the FFI stack frame 
                     // FFI stack frames have no local variables
-                    interpreter.runtime.rmem.FramePointer = (int)interpreter.runtime.rmem.GetAtRelative(StackFrame.FrameIndexFramePointer).IntegerValue;
-                    interpreter.runtime.rmem.PopFrame(StackFrame.StackFrameSize + formalParameters.Count);
+                    //interpreter.runtime.rmem.FramePointer = (int)interpreter.runtime.rmem.GetAtRelative(StackFrame.FrameIndexFramePointer).IntegerValue;
+                    //interpreter.runtime.rmem.PopFrame(StackFrame.StackFrameSize + formalParameters.Count);
 
                     return op; 
                 }
