@@ -732,7 +732,7 @@ namespace ProtoFFI
 
             //The dsObject must be of pointer type
             Validity.Assert(dsObject.IsPointer || dsObject.IsFunctionPointer, 
-                string.Format("Operand type {0} not supported for marshalling", dsObject.optype));
+                "Operand type not supported for marshalling");
 
             if (dsObject.IsFunctionPointer)
             {
