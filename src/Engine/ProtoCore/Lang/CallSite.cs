@@ -1606,63 +1606,124 @@ namespace ProtoCore
                 //@TODO:Luke perf optimisation here
                 for (int i = 0; i < retSize; i++)
                     retTrace.NestedData.Add(new SingleRunTraceData());
-
-                for (int i = 0; i < retSize; i++)
+                if (replicationInstructions.Count == 1)
                 {
-                    SingleRunTraceData lastExecTrace = new SingleRunTraceData();
-
-                    if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                    Parallel.For(0, retSize, i =>
                     {
-                        //There was previous data that needs loading into the cache
-                        lastExecTrace = previousTraceData.NestedData[i];
-                    }
-                    else
-                    {
-                        //We're off the edge of the previous trace window
-                        //So just pass in an empty block
-                        lastExecTrace = new SingleRunTraceData();
-                    }
+                        SingleRunTraceData lastExecTrace = new SingleRunTraceData();
 
-                    //Build the call
-                    List<StackValue> newFormalParams = new List<StackValue>();
-                    newFormalParams.AddRange(formalParameters);
-
-                    for (int repIi = 0; repIi < repIndecies.Count; repIi++)
-                    {
-                        switch (algorithm)
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
                         {
-                            case ZipAlgorithm.Shortest:
-                                //If the shortest algorithm is selected this would
-                                newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
-                                break;
-
-                            case ZipAlgorithm.Longest:
-
-                                int length = parameters[repIi].Length;
-                                if (i < length)
-                                {
-                                    newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
-                                }
-                                else
-                                {
-                                    newFormalParams[repIndecies[repIi]] = parameters[repIi].Last();
-                                }
-                                break;
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
                         }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //Build the call
+                        List<StackValue> newFormalParams = new List<StackValue>();
+                        newFormalParams.AddRange(formalParameters);
+
+                        for (int repIi = 0; repIi < repIndecies.Count; repIi++)
+                        {
+                            switch (algorithm)
+                            {
+                                case ZipAlgorithm.Shortest:
+                                    //If the shortest algorithm is selected this would
+                                    newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
+                                    break;
+
+                                case ZipAlgorithm.Longest:
+
+                                    int length = parameters[repIi].Length;
+                                    if (i < length)
+                                    {
+                                        newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
+                                    }
+                                    else
+                                    {
+                                        newFormalParams[repIndecies[repIi]] = parameters[repIi].Last();
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithZeroRI(functionEndPoint, c, newFormalParams, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
+
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
+                    });
+                }
+                else
+                {
+
+                    for (int i = 0; i < retSize; i++)
+                    {
+                        SingleRunTraceData lastExecTrace = new SingleRunTraceData();
+
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        {
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
+                        }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //Build the call
+                        List<StackValue> newFormalParams = new List<StackValue>();
+                        newFormalParams.AddRange(formalParameters);
+
+                        for (int repIi = 0; repIi < repIndecies.Count; repIi++)
+                        {
+                            switch (algorithm)
+                            {
+                                case ZipAlgorithm.Shortest:
+                                    //If the shortest algorithm is selected this would
+                                    newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
+                                    break;
+
+                                case ZipAlgorithm.Longest:
+
+                                    int length = parameters[repIi].Length;
+                                    if (i < length)
+                                    {
+                                        newFormalParams[repIndecies[repIi]] = parameters[repIi][i];
+                                    }
+                                    else
+                                    {
+                                        newFormalParams[repIndecies[repIi]] = parameters[repIi].Last();
+                                    }
+
+                                    break;
+                            }
+                        }
+
+                        List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
+                        newRIs.AddRange(replicationInstructions);
+                        newRIs.RemoveAt(0);
+
+
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame,
+                            runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
+
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
                     }
-
-                    List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
-                    newRIs.AddRange(replicationInstructions);
-                    newRIs.RemoveAt(0);
-
-
-                    SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
-
-                    retSVs[i] = ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
-
-                    runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
-
-                    retTrace.NestedData[i] = cleanRetTrace;
                 }
 
                 try
