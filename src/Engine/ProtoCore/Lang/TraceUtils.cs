@@ -17,8 +17,9 @@ namespace ProtoCore.Lang
 //in the TLS implementation.
 //TODO(Luke): Replace this with an attribute lookup
         internal const string __TEMP_REVIT_TRACE_ID = "{0459D869-0C72-447F-96D8-08A7FB92214B}-REVIT";
-// ReSharper restore InconsistentNaming
-        
+        // ReSharper restore InconsistentNaming
+        [ThreadStatic]
+        internal static ISerializable localStorageSlot;
 
         /// <summary>
         /// Returns a list of the keys bound to trace elements
@@ -38,15 +39,15 @@ namespace ProtoCore.Lang
         /// <returns></returns>
         public static Dictionary<String, ISerializable> GetObjectFromTLS()
         {
-            Dictionary<String, ISerializable> objs = new Dictionary<String, ISerializable>();
+            //Dictionary<String, ISerializable> objs = new Dictionary<String, ISerializable>();
 
-            foreach (String key in TEMP_GetTraceKeys())
-            {
-                objs.Add(key, 
-                    (ISerializable)Thread.GetData(Thread.GetNamedDataSlot(key)));
-            }
+            //foreach (String key in TEMP_GetTraceKeys())
+            //{
+            //    objs.Add(key, 
+            //        (ISerializable)Thread.GetData(Thread.GetNamedDataSlot(key)));
+            //}
 
-            return objs;
+            return new Dictionary<String, ISerializable>() {[__TEMP_REVIT_TRACE_ID] = localStorageSlot};
         }
 
         /// <summary>
@@ -55,14 +56,17 @@ namespace ProtoCore.Lang
         /// <param name="objs"></param>
         public static void SetObjectToTLS(Dictionary<String, ISerializable> objs)
         {
+            var id = Thread.CurrentThread.ManagedThreadId;
             foreach (String k in objs.Keys)
             {
-                if (objs[k] == null)
-                    Thread.FreeNamedDataSlot(k);
+                //if (objs[k] == null)
+                //    Thread.FreeNamedDataSlot(k);
 
-                Thread.SetData(Thread.GetNamedDataSlot(k), objs[k]);
-
+                //Thread.SetData(Thread.GetNamedDataSlot(k), objs[k]);
+                localStorageSlot = objs[k];
             }
+
+            
         }
 
         /// <summary>
@@ -71,10 +75,11 @@ namespace ProtoCore.Lang
         /// <param name="key"></param>
         public static void ClearTLSKey(string key)
         {
-            Dictionary<String, ISerializable> objs = new Dictionary<string, ISerializable>();
-            objs.Add(key, null);
-            SetObjectToTLS(objs);
-            
+            //Dictionary<String, ISerializable> objs = new Dictionary<string, ISerializable>();
+            //objs.Add(key, null);
+            //SetObjectToTLS(objs);
+            localStorageSlot = null;
+
         }
 
 
@@ -83,15 +88,15 @@ namespace ProtoCore.Lang
         /// </summary>
         public static void ClearAllKnownTLSKeys()
         {
-            Dictionary<String, ISerializable> objs = new Dictionary<string, ISerializable>();
+            //Dictionary<String, ISerializable> objs = new Dictionary<string, ISerializable>();
 
-            foreach (String key in TEMP_GetTraceKeys())
-            {
-                objs.Add(key, null);
-            }
+            //foreach (String key in TEMP_GetTraceKeys())
+            //{
+            //    objs.Add(key, null);
+            //}
 
-            SetObjectToTLS(objs);
-
+            //SetObjectToTLS(objs);
+            localStorageSlot = null;
         }
 
     }
