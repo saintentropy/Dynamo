@@ -1625,8 +1625,7 @@ namespace ProtoCore
                         }
 
                         //Build the call
-                        List<StackValue> newFormalParams = new List<StackValue>();
-                        newFormalParams.AddRange(formalParameters);
+                        List<StackValue> newFormalParams = formalParameters.ToList();
 
                         for (int repIi = 0; repIi < repIndecies.Count; repIi++)
                         {
@@ -1682,8 +1681,7 @@ namespace ProtoCore
                         }
 
                         //Build the call
-                        List<StackValue> newFormalParams = new List<StackValue>();
-                        newFormalParams.AddRange(formalParameters);
+                        List<StackValue> newFormalParams = formalParameters.ToList();
 
                         for (int repIi = 0; repIi < repIndecies.Count; repIi++)
                         {
@@ -1710,8 +1708,7 @@ namespace ProtoCore
                             }
                         }
 
-                        List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
-                        newRIs.AddRange(replicationInstructions);
+                        List<ReplicationInstruction> newRIs = replicationInstructions.ToList();
                         newRIs.RemoveAt(0);
 
 
@@ -1788,12 +1785,10 @@ namespace ProtoCore
 
                 if (supressArray)
                 {
-                    List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
-                    newRIs.AddRange(replicationInstructions);
+                    List<ReplicationInstruction> newRIs = replicationInstructions.ToList();
                     newRIs.RemoveAt(0);
 
-                    List<StackValue> newFormalParams = new List<StackValue>();
-                    newFormalParams.AddRange(formalParameters);
+                    List<StackValue> newFormalParams = formalParameters.ToList();
 
                     return ExecWithRISlowPath(functionEndPoint, c, newFormalParams, newRIs, stackFrame, runtimeCore, previousTraceData, newTraceData, finalFunctionEndPoint);
                 }
@@ -1803,8 +1798,7 @@ namespace ProtoCore
                 {
                     Parallel.For(0, retSize, i =>
                     {
-                        List<StackValue> newFormalParams = new List<StackValue>();
-                        newFormalParams.AddRange(formalParameters);
+                        List<StackValue> newFormalParams = formalParameters.ToList();
 
                         if (parameters != null)
                         {
@@ -1849,17 +1843,15 @@ namespace ProtoCore
                     for (int i = 0; i < retSize; i++)
                     {
                         //Build the call
-                        List<StackValue> newFormalParams = new List<StackValue>();
-                        newFormalParams.AddRange(formalParameters);
-
+                        List<StackValue> newFormalParams = formalParameters.ToList();
+                        
                         if (parameters != null)
                         {
                             //It was an array pack the arg with the current value
                             newFormalParams[cartIndex] = parameters[i];
                         }
 
-                        List<ReplicationInstruction> newRIs = new List<ReplicationInstruction>();
-                        newRIs.AddRange(replicationInstructions);
+                        List<ReplicationInstruction> newRIs = replicationInstructions.ToList();
                         newRIs.RemoveAt(0);
 
 
