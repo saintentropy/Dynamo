@@ -60,8 +60,6 @@ namespace ProtoCore.Lang
                 if (mInterpreter == null)
                     mInterpreter = new Interpreter(runtimeCore, true);
 
-                var localStack = new List<StackValue>();
-
                 // Setup the stack frame data
                 StackValue svThisPtr = stackFrame.ThisPtr;
                 int ci = activation.JILRecord.classIndex;
@@ -106,6 +104,23 @@ namespace ProtoCore.Lang
                     svThisPtr = formalParameters[thisPtrIndex];
                     
                     formalParameters.RemoveAt(thisPtrIndex);
+
+                    //Add the a stack frame to the formal parameters 
+                    List<StackValue> registers = mInterpreter.runtime.GetRegisters();
+
+                    // Comment Jun: the depth is always 0 for a function call as we are reseting this for each function call
+                    // This is only incremented for every language block bounce
+                    int depth = 0;
+                    StackFrameType callerType = stackFrame.CallerStackFrameType;
+
+                    // FFI calls do not have execution states
+                    //runtimeCore.RuntimeMemory.PushFrameForLocals(locals);
+                    StackFrame newStackFrame = new StackFrame(svThisPtr, ci, fi, returnAddr, blockDecl, blockCaller, callerType, StackFrameType.Function, depth, framePointer, 0, registers, 0);
+
+                    for (int i = StackFrame.StackFrameSize - 1; i >= 0; i--)
+                    {
+                        formalParameters.Add(newStackFrame.Frame[i]);
+                    }
                 }
 
                 if (mFunctionPointer == null)
@@ -135,37 +150,12 @@ namespace ProtoCore.Lang
                     mInterpreter.runtime.executingBlock = runtimeCore.RunningBlock;
                     activation.JILRecord.globs = runtimeCore.DSExecutable.runtimeSymbols[runtimeCore.RunningBlock].GetGlobalSize();
 
-                    // Params
-                    //formalParameters.Reverse();
-                    for (int i = 0; i < formalParameters.Count; i++)
-                    {
-                        //interpreter.Push(formalParameters[i]);
-                        localStack.Add(formalParameters[i]);
-                    }
-
-                    List<StackValue> registers = mInterpreter.runtime.GetRegisters();
-
-                    // Comment Jun: the depth is always 0 for a function call as we are reseting this for each function call
-                    // This is only incremented for every language block bounce
-                    int depth = 0;
-                    StackFrameType callerType = stackFrame.CallerStackFrameType;
-
-                    // FFI calls do not have execution states
-                    //runtimeCore.RuntimeMemory.PushFrameForLocals(locals);
-                    StackFrame newStackFrame = new StackFrame(svThisPtr, ci, fi, returnAddr, blockDecl, blockCaller, callerType, StackFrameType.Function, depth, framePointer, 0, registers, 0);
-                    //runtimeCore.RuntimeMemory.PushStackFrame(newStackFrame);
-
-                    for (int i = StackFrame.StackFrameSize - 1; i >= 0; i--)
-                    {
-                        localStack.Add(newStackFrame.Frame[i]);
-                    }
-
                     //is there a way the current stack be passed across and back into the managed runtime by FFI calling back into the language?
                     //e.g. DCEnv* carrying all the stack information? look at how vmkit does this.
                     // = jilMain.Run(ActivationRecord.JILRecord.pc, null, true);
 
                     //double[] tempArray = GetUnderlyingArray<double>(jilMain.runtime.rmem.stack);
-                    Object ret = mFunctionPointer.Execute(c, mInterpreter, localStack);
+                    Object ret = mFunctionPointer.Execute(c, mInterpreter, formalParameters);
                     StackValue op;
                     if (ret == null)
                     {
