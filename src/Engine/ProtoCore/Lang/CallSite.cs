@@ -1609,6 +1609,9 @@ namespace ProtoCore
 
                 if (replicationInstructions.Count == 1 && finalFunctionEndPoint is FFIFunctionEndPoint)
                 {
+                    FFIFunctionEndPoint ffep = (FFIFunctionEndPoint)finalFunctionEndPoint;
+                    ffep.Init(runtimeCore);
+
                     Parallel.For(0, retSize, i =>
                     {
                         SingleRunTraceData lastExecTrace = new SingleRunTraceData();
@@ -1797,6 +1800,9 @@ namespace ProtoCore
 
                 if (replicationInstructions.Count == 1 && finalFunctionEndPoint is FFIFunctionEndPoint)
                 {
+                    FFIFunctionEndPoint ffep = (FFIFunctionEndPoint) finalFunctionEndPoint;
+                    ffep.Init(runtimeCore);
+
                     Parallel.For(0, retSize, i =>
                     {
                         List<StackValue> newFormalParams = formalParameters.ToList();
