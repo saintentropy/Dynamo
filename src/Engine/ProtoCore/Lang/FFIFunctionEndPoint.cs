@@ -82,6 +82,9 @@ namespace ProtoCore.Lang
                     r.FunctionName, argTypes, r.ReturnType);
                 mFunctionPointer = Validate(functionPointer) ? functionPointer : null;
                 mFunctionPointer.IsDNI = activation.IsDNI;
+
+                mInterpreter.runtime.executingBlock = runtimeCore.RunningBlock;
+                activation.JILRecord.globs = runtimeCore.DSExecutable.runtimeSymbols[runtimeCore.RunningBlock].GetGlobalSize();
             }
         }
 
@@ -136,9 +139,6 @@ namespace ProtoCore.Lang
 
 
                 {
-
-                    mInterpreter.runtime.executingBlock = runtimeCore.RunningBlock;
-                    activation.JILRecord.globs = runtimeCore.DSExecutable.runtimeSymbols[runtimeCore.RunningBlock].GetGlobalSize();
                     formalParameters.Add(svThisPtr);
     
                     Object ret = mFunctionPointer.Execute(c, mInterpreter, formalParameters);
