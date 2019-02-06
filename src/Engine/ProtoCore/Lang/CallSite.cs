@@ -1606,7 +1606,8 @@ namespace ProtoCore
                 //@TODO:Luke perf optimisation here
                 for (int i = 0; i < retSize; i++)
                     retTrace.NestedData.Add(new SingleRunTraceData());
-                if (replicationInstructions.Count == 1)
+
+                if (replicationInstructions.Count == 1 && finalFunctionEndPoint is FFIFunctionEndPoint)
                 {
                     Parallel.For(0, retSize, i =>
                     {
@@ -1794,7 +1795,7 @@ namespace ProtoCore
                 }
 
 
-                if (replicationInstructions.Count == 1)
+                if (replicationInstructions.Count == 1 && finalFunctionEndPoint is FFIFunctionEndPoint)
                 {
                     Parallel.For(0, retSize, i =>
                     {
