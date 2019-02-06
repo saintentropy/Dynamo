@@ -95,15 +95,7 @@ namespace ProtoCore.Lang
             //  
             //lock (FFIHandlers)
             {
-                // Setup the stack frame data
                 StackValue svThisPtr = stackFrame.ThisPtr;
-                int ci = activation.JILRecord.classIndex;
-                int fi = activation.JILRecord.funcIndex;
-                int returnAddr = stackFrame.ReturnPC;
-                int blockDecl = stackFrame.FunctionBlock;
-                int blockCaller = stackFrame.FunctionCallerBlock;
-                int framePointer = runtimeCore.RuntimeMemory.FramePointer;
-                int locals = activation.JILRecord.locals;
 
                 if (mInterpreter == null)
                 {
@@ -147,28 +139,8 @@ namespace ProtoCore.Lang
 
                     mInterpreter.runtime.executingBlock = runtimeCore.RunningBlock;
                     activation.JILRecord.globs = runtimeCore.DSExecutable.runtimeSymbols[runtimeCore.RunningBlock].GetGlobalSize();
-
-                    //Add the a stack frame to the formal parameters 
-                    List<StackValue> registers = mInterpreter.runtime.GetRegisters();
-
-                    // Comment Jun: the depth is always 0 for a function call as we are reseting this for each function call
-                    // This is only incremented for every language block bounce
-                    int depth = 0;
-                    StackFrameType callerType = stackFrame.CallerStackFrameType;
-
-                    StackFrame newStackFrame = new StackFrame(svThisPtr, ci, fi, returnAddr, blockDecl, blockCaller,
-                        callerType, StackFrameType.Function, depth, framePointer, 0, registers, 0);
-
-                    for (int i = StackFrame.StackFrameSize - 1; i >= 0; i--)
-                    {
-                        formalParameters.Add(newStackFrame.Frame[i]);
-                    }
-
-                    //is there a way the current stack be passed across and back into the managed runtime by FFI calling back into the language?
-                    //e.g. DCEnv* carrying all the stack information? look at how vmkit does this.
-                    // = jilMain.Run(ActivationRecord.JILRecord.pc, null, true);
-
-                    //double[] tempArray = GetUnderlyingArray<double>(jilMain.runtime.rmem.stack);
+                    formalParameters.Add(svThisPtr);
+    
                     Object ret = mFunctionPointer.Execute(c, mInterpreter, formalParameters);
                     StackValue op;
                     if (ret == null)
