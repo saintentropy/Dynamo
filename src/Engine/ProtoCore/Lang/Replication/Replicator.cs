@@ -280,12 +280,24 @@ namespace ProtoCore.Lang.Replication
                     {
                         var array = runtimeCore.Heap.ToHeapObject<DSArray>(reducedParamTypes[index]);
 
-                        //It is a collection, so cast it to an array and pull the type of the first element
+                        //It is a collection, so cast it to an array and pull the type of the first element which it isn't null
                         //The elements of the array are still type structures
                         if (array.Count == 0)
+                        {
                             reducedSV = StackValue.Null;
+                        }
                         else
-                            reducedSV = array.GetValueFromIndex(0, runtimeCore);
+                        {
+                            foreach (var item in array.Values)
+                            {
+                                if (!item.IsNull)
+                                {
+                                    reducedSV = item;
+                                    break;
+                                }
+
+                            }
+                        }
                     }
                     else
                     {
