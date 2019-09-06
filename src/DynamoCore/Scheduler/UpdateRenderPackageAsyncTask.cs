@@ -134,7 +134,7 @@ namespace Dynamo.Scheduler
                     idEnum.Current.Key,
                     mirrorData.GetData(), 
                     previewIdentifierName, 
-                    displayLabels);
+                    false);
             }
         }
 
@@ -152,18 +152,40 @@ namespace Dynamo.Scheduler
             if (mirrorData.IsCollection)
             {
                 int count = 0;
+
+                var package = factory.CreateRenderPackage();
+                var packageWithTransform = package as ITransformable;
+                package.Description = tag; ;
+
                 foreach (var el in mirrorData.GetElements())
                 {
-                    if (el.IsCollection || el.Data is IGraphicItem)
+
+                    if (el.IsCollection)
                     {
                         string newTag = tag + ":" + count;
                         GetRenderPackagesFromMirrorData(outputPortId, el, newTag, displayLabels);
+                        count++;
                     }
-                    count = count + 1;
+                    else
+                    {
+                        var graphicItem = el.Data as IGraphicItem;
+                        if (graphicItem == null)
+                        {
+                            return;
+                        }
+
+                        FillRenderPackage(graphicItem, package, packageWithTransform);
+                    }
                 }
+
+                package.DisplayLabels = displayLabels;
+                package.IsSelected = isNodeSelected;
+
+                renderPackageCache.Add(package, outputPortId);
             }
             else
             {
+                //Craig todo don't get data if it is type value....
                 var graphicItem = mirrorData.Data as IGraphicItem;
                 if (graphicItem == null)
                 {
@@ -174,142 +196,139 @@ namespace Dynamo.Scheduler
                 var packageWithTransform = package as ITransformable;
                 package.Description = tag;
 
-                try
-                {
-                    graphicItem.Tessellate(package, factory.TessellationParameters);
-                    if (package.MeshVertexColors.Count() > 0)
-                    {
-                        package.RequiresPerVertexColoration = true;
-                    }
-
-                    //If the package has a transform that is not the identity matrix
-                    //then set requiresCustomTransform to true.
-                    if (packageWithTransform != null && packageWithTransform.Transform.SequenceEqual(
-                        new double[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }) == false)
-                    {
-                        (packageWithTransform).RequiresCustomTransform = true;
-                    }
-
-                    if (factory.TessellationParameters.ShowEdges)
-                    {
-                        var topology = graphicItem as Topology;
-                        if (topology != null)
-                        {
-                            var surf = graphicItem as Surface;
-                            if (surf != null)
-                            {
-                                foreach (var curve in surf.PerimeterCurves())
-                                {
-                                    curve.Tessellate(package, factory.TessellationParameters);
-                                    curve.Dispose();
-                                }
-                            }
-                            else
-                            {
-                                var edges = topology.Edges;
-                                foreach (var geom in edges.Select(edge => edge.CurveGeometry))
-                                {
-                                    geom.Tessellate(package, factory.TessellationParameters);
-                                    geom.Dispose();
-                                }
-                                edges.ForEach(x => x.Dispose());
-                            }
-                        }
-                    }
-                    
-                    var plane = graphicItem as Plane;
-                    if (plane != null)
-                    {
-                        package.RequiresPerVertexColoration = true;
-
-                        var s = 2.5;
-
-                        var cs = CoordinateSystem.ByPlane(plane);
-                        var a = Point.ByCartesianCoordinates(cs, s, s, 0);
-                        var b = Point.ByCartesianCoordinates(cs, -s, s, 0);
-                        var c = Point.ByCartesianCoordinates(cs, -s, -s, 0);
-                        var d = Point.ByCartesianCoordinates(cs, s, -s, 0);
-
-                        // Get rid of the original plane geometry.
-                        package.Clear();
-
-                        package.AddTriangleVertex(a.X, a.Y, a.Z);
-                        package.AddTriangleVertex(b.X, b.Y, b.Z);
-                        package.AddTriangleVertex(c.X, c.Y, c.Z);
-
-                        package.AddTriangleVertex(c.X, c.Y, c.Z);
-                        package.AddTriangleVertex(d.X, d.Y, d.Z);
-                        package.AddTriangleVertex(a.X, a.Y, a.Z);
-
-                        package.AddTriangleVertexUV(0, 0);
-                        package.AddTriangleVertexUV(0, 0);
-                        package.AddTriangleVertexUV(0, 0);
-                        package.AddTriangleVertexUV(0, 0);
-                        package.AddTriangleVertexUV(0, 0);
-                        package.AddTriangleVertexUV(0, 0);
-
-                        // Draw plane edges
-                        package.AddLineStripVertex(a.X, a.Y, a.Z);
-                        package.AddLineStripVertex(b.X, b.Y, b.Z);
-                        package.AddLineStripVertex(b.X, b.Y, b.Z);
-                        package.AddLineStripVertex(c.X, c.Y, c.Z);
-                        package.AddLineStripVertex(c.X, c.Y, c.Z);
-                        package.AddLineStripVertex(d.X, d.Y, d.Z);
-                        package.AddLineStripVertex(d.X, d.Y, d.Z);
-                        package.AddLineStripVertex(a.X, a.Y, a.Z);
-
-                        // Draw normal
-                        package.AddLineStripVertex(plane.Origin.X, plane.Origin.Y, plane.Origin.Z);
-                        var nEnd = plane.Origin.Add(plane.Normal.Scale(2.5));
-                        package.AddLineStripVertex(nEnd.X, nEnd.Y, nEnd.Z);
-
-                        for (var i = 0; i < package.LineVertexCount / 2; i++)
-                        {
-                            package.AddLineStripVertexCount(2);
-                        }
-
-                        for (var i = 0; i < package.LineVertexCount; i ++)
-                        {
-                            package.AddLineStripVertexColor(MidTone, MidTone, MidTone, 255);
-                        }
-
-                        for (var i = 0; i < package.MeshVertexCount; i++)
-                        {
-                            package.AddTriangleVertexNormal(plane.Normal.X, plane.Normal.Y, plane.Normal.Z);
-                        }
-
-                        for (var i = 0; i < package.MeshVertexCount; i++)
-                        {
-                            package.AddTriangleVertexColor(0, 0, 0, 10);
-                        }
-                    }
-
-                    // The default color coming from the geometry library for
-                    // curves is 255,255,255,255 (White). Because we want a default
-                    // color of 0,0,0,255 (Black), we adjust the color components here.
-                    if (graphicItem is Curve || graphicItem is Surface || graphicItem is Solid || graphicItem is Point)
-                    {
-                        if (package.LineVertexCount > 0 && package.LineStripVertexColors.Count() <= 0)
-                        {
-                            package.ApplyLineVertexColors(CreateColorByteArrayOfSize(package.LineVertexCount, DefR, DefG, DefB, DefA));
-                        }
-
-                        if (package.PointVertexCount > 0 && package.PointVertexColors.Count() <= 0)
-                        {
-                            package.ApplyPointVertexColors(CreateColorByteArrayOfSize(package.PointVertexCount, DefR, DefG, DefB, DefA));
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(
-                        "PushGraphicItemIntoPackage: " + e);
-                }
+                FillRenderPackage(graphicItem, package, packageWithTransform);
 
                 package.DisplayLabels = displayLabels;
                 package.IsSelected = isNodeSelected;
 
                 renderPackageCache.Add(package, outputPortId);
+            }
+        }
+
+        private void FillRenderPackage(IGraphicItem graphicItem, IRenderPackage package, ITransformable packageWithTransform)
+        {
+            try
+            {
+                graphicItem.Tessellate(package, factory.TessellationParameters);
+                if (package.MeshVertexColors.Count() > 0)
+                {
+                    package.RequiresPerVertexColoration = true;
+                }
+
+                //If the package has a transform that is not the identity matrix
+                //then set requiresCustomTransform to true.
+                if (packageWithTransform != null && packageWithTransform.Transform.SequenceEqual(
+                        new double[] {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}) == false)
+                {
+                    (packageWithTransform).RequiresCustomTransform = true;
+                }
+
+                if (factory.TessellationParameters.ShowEdges)
+                {
+                    var topology = graphicItem as Topology;
+                    if (topology != null)
+                    {
+                        var surf = graphicItem as Surface;
+                        if (surf != null)
+                        {
+                            foreach (var curve in surf.PerimeterCurves())
+                            {
+                                curve.Tessellate(package, factory.TessellationParameters);
+                                curve.Dispose();
+                            }
+                        }
+                    }
+                }
+
+                var plane = graphicItem as Plane;
+                if (plane != null)
+                {
+                    package.RequiresPerVertexColoration = true;
+
+                    var s = 2.5;
+
+                    var cs = CoordinateSystem.ByPlane(plane);
+                    var a = Point.ByCartesianCoordinates(cs, s, s, 0);
+                    var b = Point.ByCartesianCoordinates(cs, -s, s, 0);
+                    var c = Point.ByCartesianCoordinates(cs, -s, -s, 0);
+                    var d = Point.ByCartesianCoordinates(cs, s, -s, 0);
+
+                    // Get rid of the original plane geometry.
+                    package.Clear();
+
+                    package.AddTriangleVertex(a.X, a.Y, a.Z);
+                    package.AddTriangleVertex(b.X, b.Y, b.Z);
+                    package.AddTriangleVertex(c.X, c.Y, c.Z);
+
+                    package.AddTriangleVertex(c.X, c.Y, c.Z);
+                    package.AddTriangleVertex(d.X, d.Y, d.Z);
+                    package.AddTriangleVertex(a.X, a.Y, a.Z);
+
+                    package.AddTriangleVertexUV(0, 0);
+                    package.AddTriangleVertexUV(0, 0);
+                    package.AddTriangleVertexUV(0, 0);
+                    package.AddTriangleVertexUV(0, 0);
+                    package.AddTriangleVertexUV(0, 0);
+                    package.AddTriangleVertexUV(0, 0);
+
+                    // Draw plane edges
+                    package.AddLineStripVertex(a.X, a.Y, a.Z);
+                    package.AddLineStripVertex(b.X, b.Y, b.Z);
+                    package.AddLineStripVertex(b.X, b.Y, b.Z);
+                    package.AddLineStripVertex(c.X, c.Y, c.Z);
+                    package.AddLineStripVertex(c.X, c.Y, c.Z);
+                    package.AddLineStripVertex(d.X, d.Y, d.Z);
+                    package.AddLineStripVertex(d.X, d.Y, d.Z);
+                    package.AddLineStripVertex(a.X, a.Y, a.Z);
+
+                    // Draw normal
+                    package.AddLineStripVertex(plane.Origin.X, plane.Origin.Y, plane.Origin.Z);
+                    var nEnd = plane.Origin.Add(plane.Normal.Scale(2.5));
+                    package.AddLineStripVertex(nEnd.X, nEnd.Y, nEnd.Z);
+
+                    for (var i = 0; i < package.LineVertexCount / 2; i++)
+                    {
+                        package.AddLineStripVertexCount(2);
+                    }
+
+                    for (var i = 0; i < package.LineVertexCount; i++)
+                    {
+                        package.AddLineStripVertexColor(MidTone, MidTone, MidTone, 255);
+                    }
+
+                    for (var i = 0; i < package.MeshVertexCount; i++)
+                    {
+                        package.AddTriangleVertexNormal(plane.Normal.X, plane.Normal.Y, plane.Normal.Z);
+                    }
+
+                    for (var i = 0; i < package.MeshVertexCount; i++)
+                    {
+                        package.AddTriangleVertexColor(0, 0, 0, 10);
+                    }
+                }
+
+                // The default color coming from the geometry library for
+                // curves is 255,255,255,255 (White). Because we want a default
+                // color of 0,0,0,255 (Black), we adjust the color components here.
+                if (graphicItem is Curve || graphicItem is Surface || graphicItem is Solid || graphicItem is Point)
+                {
+                    if (package.LineVertexCount > 0 && package.LineStripVertexColors.Count() <= 0)
+                    {
+                        package.ApplyLineVertexColors(CreateColorByteArrayOfSize(package.LineVertexCount, DefR, DefG, DefB,
+                            DefA));
+                    }
+
+                    if (package.PointVertexCount > 0 && package.PointVertexColors.Count() <= 0)
+                    {
+                        package.ApplyPointVertexColors(CreateColorByteArrayOfSize(package.PointVertexCount, DefR, DefG, DefB,
+                            DefA));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(
+                    "PushGraphicItemIntoPackage: " + e);
             }
         }
 
