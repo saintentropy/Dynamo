@@ -140,8 +140,8 @@ namespace Dynamo.Scheduler
 
         private void GetRenderPackagesFromMirrorData(
             Guid outputPortId,
-            MirrorData mirrorData, 
-            string tag, 
+            MirrorData mirrorData,
+            string tag,
             bool displayLabels)
         {
             if (mirrorData.IsNull)
@@ -149,39 +149,44 @@ namespace Dynamo.Scheduler
                 return;
             }
 
+            var package = factory.CreateRenderPackage();
+            package.DisplayLabels = displayLabels;
+            package.Description = tag;
+            package.IsSelected = isNodeSelected;
+
+            GetRenderPackagesFromMirrorDataImp(mirrorData, package);
+
+            FinalizeRenderPackage(package);
+
+            renderPackageCache.Add(package, outputPortId);
+
+        }
+        private void GetRenderPackagesFromMirrorDataImp(
+                MirrorData mirrorData,
+                IRenderPackage package)
+        { 
+
             if (mirrorData.IsCollection)
             {
-                int count = 0;
-
-                var package = factory.CreateRenderPackage();
-                var packageWithTransform = package as ITransformable;
-                package.Description = tag; ;
 
                 foreach (var el in mirrorData.GetElements())
                 {
 
                     if (el.IsCollection)
                     {
-                        string newTag = tag + ":" + count;
-                        GetRenderPackagesFromMirrorData(outputPortId, el, newTag, displayLabels);
-                        count++;
+                        GetRenderPackagesFromMirrorDataImp(el, package);
                     }
                     else
                     {
                         var graphicItem = el.Data as IGraphicItem;
                         if (graphicItem == null)
                         {
-                            return;
+                            continue;
                         }
 
-                        FillRenderPackage(graphicItem, package, packageWithTransform);
+                        FillRenderPackage(graphicItem, package);
                     }
                 }
-
-                package.DisplayLabels = displayLabels;
-                package.IsSelected = isNodeSelected;
-
-                renderPackageCache.Add(package, outputPortId);
             }
             else
             {
@@ -192,36 +197,16 @@ namespace Dynamo.Scheduler
                     return;
                 }
 
-                var package = factory.CreateRenderPackage();
-                var packageWithTransform = package as ITransformable;
-                package.Description = tag;
+                FillRenderPackage(graphicItem, package);
 
-                FillRenderPackage(graphicItem, package, packageWithTransform);
-
-                package.DisplayLabels = displayLabels;
-                package.IsSelected = isNodeSelected;
-
-                renderPackageCache.Add(package, outputPortId);
             }
         }
 
-        private void FillRenderPackage(IGraphicItem graphicItem, IRenderPackage package, ITransformable packageWithTransform)
+        private void FillRenderPackage(IGraphicItem graphicItem, IRenderPackage package)
         {
             try
             {
                 graphicItem.Tessellate(package, factory.TessellationParameters);
-                if (package.MeshVertexColors.Count() > 0)
-                {
-                    package.RequiresPerVertexColoration = true;
-                }
-
-                //If the package has a transform that is not the identity matrix
-                //then set requiresCustomTransform to true.
-                if (packageWithTransform != null && packageWithTransform.Transform.SequenceEqual(
-                        new double[] {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1}) == false)
-                {
-                    (packageWithTransform).RequiresCustomTransform = true;
-                }
 
                 if (factory.TessellationParameters.ShowEdges)
                 {
@@ -307,29 +292,34 @@ namespace Dynamo.Scheduler
                     }
                 }
 
-                // The default color coming from the geometry library for
-                // curves is 255,255,255,255 (White). Because we want a default
-                // color of 0,0,0,255 (Black), we adjust the color components here.
-                if (graphicItem is Curve || graphicItem is Surface || graphicItem is Solid || graphicItem is Point)
-                {
-                    if (package.LineVertexCount > 0 && package.LineStripVertexColors.Count() <= 0)
-                    {
-                        package.ApplyLineVertexColors(CreateColorByteArrayOfSize(package.LineVertexCount, DefR, DefG, DefB,
-                            DefA));
-                    }
-
-                    if (package.PointVertexCount > 0 && package.PointVertexColors.Count() <= 0)
-                    {
-                        package.ApplyPointVertexColors(CreateColorByteArrayOfSize(package.PointVertexCount, DefR, DefG, DefB,
-                            DefA));
-                    }
-                }
+               
             }
             catch (Exception e)
             {
                 Debug.WriteLine(
                     "PushGraphicItemIntoPackage: " + e);
             }
+        }
+
+        private void FinalizeRenderPackage(IRenderPackage package)
+        {
+
+            if (package.MeshVertexColors.Count() > 0)
+            {
+                package.RequiresPerVertexColoration = true;
+            }
+
+            if (package.LineVertexCount > 0 && package.LineStripVertexColors.Count() <= 0)
+                {
+                    package.ApplyLineVertexColors(CreateColorByteArrayOfSize(package.LineVertexCount, DefR, DefG, DefB,
+                        DefA));
+                }
+
+                if (package.PointVertexCount > 0 && package.PointVertexColors.Count() <= 0)
+                {
+                    package.ApplyPointVertexColors(CreateColorByteArrayOfSize(package.PointVertexCount, DefR, DefG, DefB,
+                        DefA));
+                }
         }
 
         private static byte[] CreateColorByteArrayOfSize(int size, byte red, byte green, byte blue, byte alpha)
