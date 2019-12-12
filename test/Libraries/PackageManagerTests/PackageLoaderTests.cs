@@ -598,8 +598,11 @@ namespace Dynamo.PackageManager.Tests
             
             
             Assert.IsTrue(discoveredPkg.RequiresSignedEntryPoints);
-            
-            
+
+
+            Assert.IsTrue(loader.LocalPackages.All(pkg => pkg.Name != discoveredPkg.Name));
+
+
             Assert.IsFalse(discoveredPkg.Loaded);
             loader.Add(discoveredPkg);
 
