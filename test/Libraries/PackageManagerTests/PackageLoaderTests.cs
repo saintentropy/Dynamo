@@ -594,17 +594,18 @@ namespace Dynamo.PackageManager.Tests
             // prevent loading unsigned packages if the certificates are required on package dlls
             loader.CheckPackageNodeLibraryCertificates(pkgDir, discoveredPkg);
 
-                // Assert that ScanPackageDirectory returns a package
             Assert.IsNotNull(discoveredPkg);
-            loader.LoadPackages(new List<Package> { discoveredPkg });
+            
+            
+            Assert.IsTrue(discoveredPkg.RequiresSignedEntryPoints);
+            
+            
+            Assert.IsFalse(discoveredPkg.Loaded);
+            loader.Add(discoveredPkg);
 
-            // Verify that package resolved successfully
-            var libs = CurrentDynamoModel.LibraryServices.ImportedLibraries.ToList();
-            Assert.IsTrue(libs.Contains(Path.Combine(PackagesDirectorySigned, "Signed Package", "bin", "Package.dll")));
+            var assems = discoveredPkg.EnumerateAssembliesInBinDirectory();
+            Assert.IsTrue(assems.Count() == 1);
 
-            // Verify that the package are imported successfully
-            var entries = CurrentDynamoModel.SearchModel.SearchEntries.ToList();
-            Assert.IsTrue(entries.Any(x => x.FullName == "Package.Package.Package.Hello"));
         }
 
         public bool IsValidPath(string filePath)
