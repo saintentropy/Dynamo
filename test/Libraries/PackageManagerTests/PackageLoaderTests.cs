@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Dynamo.Engine;
+using Dynamo.Exceptions;
 using Dynamo.Extensions;
 using Dynamo.Graph.Nodes.CustomNodes;
 using Dynamo.Graph.Workspaces;
@@ -560,6 +561,55 @@ namespace Dynamo.PackageManager.Tests
             // Verify that the package are imported successfully
             var entries = CurrentDynamoModel.SearchModel.SearchEntries.ToList();
             Assert.IsTrue(entries.Any(x => x.FullName == "Package.Package.Package.Hello"));
+        }
+
+        [Test]
+        public void ScanPackageDirectoryWithCheckingCertificatesEnabledWillLoadPackageWithValidCertificateVerbose()
+        {
+            var loader = new PackageLoader(new[] { PackagesDirectory }, new[] { PackagesDirectorySigned });
+            var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
+
+            loader.PackagesLoaded += libraryLoader.LoadPackages;
+            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+
+            var pkgDir = Path.Combine(PackagesDirectorySigned, "Signed Package");
+            //var pkg = loader.ScanPackageDirectory(pkgDir, true);
+
+            var headerPath = Path.Combine(pkgDir, "pkg.json");
+
+            Package discoveredPkg;
+
+            // get the package name and the installed version
+            if (IsValidPath(headerPath))
+            {
+                discoveredPkg = Package.FromJson(headerPath, CurrentDynamoModel.Logger);
+                if (discoveredPkg == null)
+                    throw new LibraryLoadFailedException(pkgDir, String.Format(Properties.Resources.MalformedHeaderPackage, headerPath));
+            }
+            else
+            {
+                throw new LibraryLoadFailedException(pkgDir, String.Format(Properties.Resources.NoHeaderPackage, headerPath));
+            }
+
+            // prevent loading unsigned packages if the certificates are required on package dlls
+            loader.CheckPackageNodeLibraryCertificates(pkgDir, discoveredPkg);
+
+                // Assert that ScanPackageDirectory returns a package
+            Assert.IsNotNull(discoveredPkg);
+            loader.LoadPackages(new List<Package> { discoveredPkg });
+
+            // Verify that package resolved successfully
+            var libs = CurrentDynamoModel.LibraryServices.ImportedLibraries.ToList();
+            Assert.IsTrue(libs.Contains(Path.Combine(PackagesDirectorySigned, "Signed Package", "bin", "Package.dll")));
+
+            // Verify that the package are imported successfully
+            var entries = CurrentDynamoModel.SearchModel.SearchEntries.ToList();
+            Assert.IsTrue(entries.Any(x => x.FullName == "Package.Package.Package.Hello"));
+        }
+
+        public bool IsValidPath(string filePath)
+        {
+            return (!string.IsNullOrEmpty(filePath) && (File.Exists(filePath)));
         }
 
         [Test]
