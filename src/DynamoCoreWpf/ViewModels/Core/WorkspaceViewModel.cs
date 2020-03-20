@@ -263,6 +263,8 @@ namespace Dynamo.ViewModels
         public ObservableCollection<NoteViewModel> Notes { get; } = new ObservableCollection<NoteViewModel>();
         [JsonIgnore]
         public ObservableCollection<InfoBubbleViewModel> Errors { get; } = new ObservableCollection<InfoBubbleViewModel>();
+        [JsonIgnore]
+        public ObservableCollection<NodeIconViewModel> Icons { get; } = new ObservableCollection<NodeIconViewModel>();
         public ObservableCollection<AnnotationViewModel> Annotations { get; } = new ObservableCollection<AnnotationViewModel>();
 
         [JsonIgnore]
@@ -419,6 +421,9 @@ namespace Dynamo.ViewModels
 
             var errorsColl = new CollectionContainer { Collection = Errors };
             WorkspaceElements.Add(errorsColl);
+
+            var iconsColl = new CollectionContainer { Collection = Icons };
+            WorkspaceElements.Add(iconsColl);
 
             var annotationsColl = new CollectionContainer {Collection = Annotations};
             WorkspaceElements.Add(annotationsColl);
@@ -672,6 +677,7 @@ namespace Dynamo.ViewModels
             }
             Nodes.Clear();
             Errors.Clear();
+            Icons.Clear();
 
             PostNodeChangeActions();
         }
@@ -686,6 +692,7 @@ namespace Dynamo.ViewModels
         {
             NodeViewModel nodeViewModel = Nodes.First(x => x.NodeLogic == node);
             Errors.Remove(nodeViewModel.ErrorBubble);
+            Icons.Remove(nodeViewModel.NodeIcon);
             Nodes.Remove(nodeViewModel);
             //unsub the events we attached below in NodeAdded.
             this.unsubscribeNodeEvents(nodeViewModel);
@@ -701,6 +708,7 @@ namespace Dynamo.ViewModels
             nodeViewModel.NodeLogic.Modified += OnNodeModified;
             Nodes.Add(nodeViewModel);
             Errors.Add(nodeViewModel.ErrorBubble);
+            Icons.Add(nodeViewModel.NodeIcon);
             nodeViewModel.UpdateBubbleContent();
 
             PostNodeChangeActions();
