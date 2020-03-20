@@ -1,0 +1,45 @@
+﻿<UserControl x:Class="Dynamo.Controls.NodeIconView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:ui="clr-namespace:Dynamo.UI"
+             xmlns:controls="clr-namespace:Dynamo.Views"
+             mc:Ignorable="d"
+             Name="NodeIconWindowUserControl"
+             Loaded="NodeIconWindowUserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoModernDictionaryUri}" />
+                <ResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid x:Name="IconGrid" HorizontalAlignment="Left" VerticalAlignment="Top" 
+          IsHitTestVisible="False"
+          Opacity="{Binding Path=DataContext.Zoom, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:WorkspaceView}}, Converter={StaticResource ZoomToOpacityConverter}}"
+          Visibility="{Binding Path=LargeIcon, Converter={StaticResource NullValueToCollapsedConverter}}">
+        <Border Background="#FF353535">
+            <Border.OpacityMask>
+                <VisualBrush>
+                    <VisualBrush.Visual>
+                        <Border CornerRadius="30"  Height="170" Width="170" Background="#FF353535"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Border.OpacityMask>
+            <Border.Effect>
+                <BlurEffect Radius="30"/>
+            </Border.Effect>
+        </Border>
+        <Image Name="Icon"
+               Height="135"
+               Width="135"
+               Canvas.ZIndex="100"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Source="{Binding Path=LargeIcon}"
+               Visibility="Visible">
+        </Image>
+    </Grid>
+</UserControl>
