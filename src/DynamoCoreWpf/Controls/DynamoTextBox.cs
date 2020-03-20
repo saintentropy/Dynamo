@@ -100,7 +100,6 @@ namespace Dynamo.Nodes
             Padding = new Thickness(3);
             base.Text = initialText;
             Pending = false;
-            Style = (Style)SharedDictionaryManager.DynamoModernDictionary["SZoomFadeTextBox"];
             MinHeight = 20;
         }
 

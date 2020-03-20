@@ -139,7 +139,6 @@
                     <TextBlock Name="portNameTb"
                        Width="Auto"
                        HorizontalAlignment="Stretch"
-                       Style="{StaticResource SZoomFadeText}"
                        Text="{Binding Path=PortName, Converter={StaticResource PortNameConverter} }"
                        VerticalAlignment="Center"
                        FontSize="13"

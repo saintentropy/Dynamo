@@ -318,91 +318,6 @@
         </Setter>
     </Style>
 
-    <!--Zoom fade text-->
-    <Style x:Key="SZoomFadeText"
-           TargetType="{x:Type TextBlock}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Path=DataContext.Zoom, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:WorkspaceView}}, Converter={StaticResource ZoomToBooleanConverter}}"
-                         Value="true">
-                <DataTrigger.EnterActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="1.0"
-                                             Duration="0:0:0.2" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.EnterActions>
-                <DataTrigger.ExitActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0.0"
-                                             Duration="0:0:0.2" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.ExitActions>
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-
-    <!--Zoom fade preview-->
-    <Style x:Key="SZoomFadePreview"
-           TargetType="{x:Type Border}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Path=DataContext.Zoom, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:WorkspaceView}}, Converter={StaticResource ZoomToBooleanConverter}}"
-                         Value="true">
-                <DataTrigger.EnterActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0.4"
-                                             Duration="0:0:0.5" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.EnterActions>
-                <DataTrigger.ExitActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0.7"
-                                             Duration="0:0:0.5" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.ExitActions>
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-
-
-
-    <Style x:Key="SZoomFadeTextBox"
-           TargetType="{x:Type TextBox}">
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding Path=DataContext.Zoom, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type controls:WorkspaceView}}, Converter={StaticResource ZoomToBooleanConverter}}"
-                         Value="true">
-                <DataTrigger.EnterActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="1.0"
-                                             Duration="0:0:0.2" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.EnterActions>
-                <DataTrigger.ExitActions>
-                    <BeginStoryboard>
-                        <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                             To="0.0"
-                                             Duration="0:0:0.2" />
-                        </Storyboard>
-                    </BeginStoryboard>
-                </DataTrigger.ExitActions>
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
-
     <LinearGradientBrush x:Key="ButtonGradientBackground"
                          StartPoint="0.5,0"
                          EndPoint="0.5,1">
@@ -930,8 +845,7 @@
                                        Margin="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Margin}"
                                        FontSize="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=FontSize}"
                                        Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Content}"
-                                       Padding="3"
-                                       Style="{StaticResource SZoomFadeText}"></TextBlock>
+                                       Padding="3"></TextBlock>
                         </Grid>
                     </Grid>
 

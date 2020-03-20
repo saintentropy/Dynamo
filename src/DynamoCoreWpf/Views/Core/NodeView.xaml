@@ -251,8 +251,7 @@
                 Canvas.ZIndex="12"
                 Margin="1,1,1,1"
                 Background="#99B8CA"
-                Opacity=".4"
-                Style="{StaticResource SZoomFadePreview}">
+                Opacity=".4">
             <Border.Visibility>
                 <Binding Path="IsVisible"
                          UpdateSourceTrigger="PropertyChanged"
@@ -277,8 +276,7 @@
                    IsHitTestVisible="False"
                    Canvas.ZIndex="12"
                    Height="{StaticResource NodeNameHeight}"
-                   Background="{x:Null}"
-                   Style="{StaticResource SZoomFadeText}">
+                   Background="{x:Null}">
             <TextBlock.Foreground>
                 <Binding Path="State"
                          UpdateSourceTrigger="PropertyChanged"
