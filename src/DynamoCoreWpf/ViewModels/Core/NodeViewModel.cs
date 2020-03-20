@@ -106,6 +106,9 @@ namespace Dynamo.ViewModels
         public InfoBubbleViewModel ErrorBubble { get; set; }
 
         [JsonIgnore]
+        public NodeIconViewModel NodeIcon { get; set; }
+
+        [JsonIgnore]
         public string ToolTipText
         {
             get { return nodeLogic.ToolTipText; }
@@ -588,6 +591,22 @@ namespace Dynamo.ViewModels
             DynamoSelection.Instance.Selection.CollectionChanged += SelectionOnCollectionChanged;
             ZIndex = ++StaticZIndex;
             ++NoteViewModel.StaticZIndex;
+
+            var nodeName = NodeModel.CreationName;
+            if (nodeName == "")
+            {
+                nodeName = NodeModel.GetType().FullName;
+            }
+
+            try
+            {
+                var svm = WorkspaceViewModel.InCanvasSearchViewModel?.FindViewModelForNode(nodeName);
+                NodeIcon = new NodeIconViewModel(DynamoViewModel, nodeName, svm?.LargeIcon);
+            }
+            catch
+            {
+                NodeIcon = new NodeIconViewModel(DynamoViewModel, nodeName, null);
+            }
         }
 
         /// <summary>
@@ -614,6 +633,7 @@ namespace Dynamo.ViewModels
                 p.Dispose();
             }
             ErrorBubble.Dispose();
+            NodeIcon.Dispose();
             DynamoSelection.Instance.Selection.CollectionChanged -= SelectionOnCollectionChanged;
             base.Dispose();
         }
