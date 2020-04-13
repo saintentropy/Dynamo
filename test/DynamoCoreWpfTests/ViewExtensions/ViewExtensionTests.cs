@@ -27,27 +27,44 @@ namespace DynamoCoreWpfTests
         }
 
         [Test]
+        public void ExtensionWindowIsClosedWithDynamo()
+        {
+            var dummyExtension = new DummyViewExtension()
+            {
+                SetOwner = false
+            };
+
+            RaiseLoadedEvent(this.View);
+            var extensionManager = View.viewExtensionManager;
+            extensionManager.Add(dummyExtension);
+
+            View.Close();
+
+            Assert.IsTrue(dummyExtension.WindowClosed);
+        }
+
+        [Test]
         public void ExtensionsSideBarExtensionsTest()
         {
             RaiseLoadedEvent(this.View);
 
             var extensionManager = View.viewExtensionManager;
 
-            var initialNum = View.TabItems.Count;
+            var initialNum = View.ExtensionTabItems.Count;
 
             // Adding the first extension will add a tab in the extensions side bar
             extensionManager.Add(viewExtension);
-            Assert.AreEqual(initialNum + 1, View.TabItems.Count);
+            Assert.AreEqual(initialNum + 1, View.ExtensionTabItems.Count);
 
             // Adding the second extension will add another tab in the extensions side bar
             extensionManager.Add(extensionsSideBarViewExtension);
-            Assert.AreEqual(initialNum + 2, View.TabItems.Count);
+            Assert.AreEqual(initialNum + 2, View.ExtensionTabItems.Count);
 
             // Setting a different unique ID so as to add the extension to the extension manager. 
             // But since that extension is already added to the side bar, it won't be added again. 
             extensionsSideBarViewExtensionNew.UniqueId = "ExtensionsSideBarDummyIDNew";
             extensionManager.Add(extensionsSideBarViewExtensionNew);
-            Assert.AreEqual(initialNum + 2, View.TabItems.Count); 
+            Assert.AreEqual(initialNum + 2, View.ExtensionTabItems.Count); 
         }
 
         public static void RaiseLoadedEvent(FrameworkElement element)
@@ -63,7 +80,9 @@ namespace DynamoCoreWpfTests
 
     public class DummyViewExtension : IViewExtension
     {
-        public int Counter = 0;
+        public int Counter { get; set; }
+        public bool SetOwner { get; set; } = true;
+        public bool WindowClosed { get; set; }
 
         public string UniqueId
         {
@@ -87,11 +106,15 @@ namespace DynamoCoreWpfTests
                 Counter++;
             };
 
-            var window = new Window
+            var window = new Window();
+            window.Closed += (sender, args) =>
             {
-                // Set the owner of the window to tuIDhe Dynamo window.
-                Owner = p.DynamoWindow
+                WindowClosed = true;
             };
+            if (SetOwner)
+            {
+                window.Owner = p.DynamoWindow;
+            }
 
             p.AddToExtensionsSideBar(this, window);
         }
@@ -138,7 +161,6 @@ namespace DynamoCoreWpfTests
 
             var window = new Window
             {
-                // Set the owner of the window to tuIDhe Dynamo window.
                 Owner = p.DynamoWindow
             };
 

@@ -15,6 +15,7 @@ namespace Dynamo.PackageManager.Tests
     class PackageLoaderTests : DynamoModelTestBase
     {
         public string PackagesDirectory { get { return Path.Combine(TestDirectory, "pkgs"); } }
+        public string PackagesDirectorySigned { get { return Path.Combine(TestDirectory, "pkgs_signed"); } }
 
         protected override void GetLibrariesToPreload(List<string> libraries)
         {
@@ -42,6 +43,19 @@ namespace Dynamo.PackageManager.Tests
             loader.LoadPackages(new List<Package> {pkg});
 
             Assert.AreEqual(3, pkg.LoadedCustomNodes.Count);
+        }
+
+        [Test]
+        public void LoadPackagesDoesNotDuplicateLoadedAssemblies()
+        {
+            var pkgDir = Path.Combine(PackagesDirectory, "AnotherPackage");
+            var loader = GetPackageLoader();
+            var pkg = loader.ScanPackageDirectory(pkgDir);
+
+            loader.LoadPackages(new List<Package> { pkg });
+            Assert.AreEqual(1, pkg.LoadedAssemblies.Count);
+            Assert.AreEqual("AnotherPackage", pkg.LoadedAssemblies.First().Name);
+            Assert.IsTrue(pkg.LoadedAssemblies.First().IsNodeLibrary);
         }
 
         [Test]
@@ -126,7 +140,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             loader.LoadAll(new LoadPackageParams
             {
@@ -134,8 +148,8 @@ namespace Dynamo.PackageManager.Tests
                 PathManager = CurrentDynamoModel.PathManager
             });
 
-            // There are 15 packages in "GitHub\Dynamo\test\pkgs"
-            Assert.AreEqual(15, loader.LocalPackages.Count());
+            // There are 16 packages in "Dynamo\test\pkgs"
+            Assert.AreEqual(16, loader.LocalPackages.Count());
 
             // Verify that interdependent packages are resolved successfully
             var libs = CurrentDynamoModel.LibraryServices.ImportedLibraries.ToList();
@@ -157,7 +171,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             loader.LoadAll(new LoadPackageParams
             {
@@ -165,8 +179,8 @@ namespace Dynamo.PackageManager.Tests
                 PathManager = CurrentDynamoModel.PathManager
             });
 
-            // There are 15 packages in "GitHub\Dynamo\test\pkgs"
-            Assert.AreEqual(15, loader.LocalPackages.Count());
+            // There are 16 packages in "Dynamo\test\pkgs"
+            Assert.AreEqual(16, loader.LocalPackages.Count());
 
             // Simulate loading new package from PM
             string packageDirectory = Path.Combine(TestDirectory, @"core\packageDependencyTests\ZTTestPackage");
@@ -189,7 +203,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             // This test needs the "isTestMode" flag to be turned off as an exception to be able 
             // to test duplicate custom node def loading.
@@ -216,7 +230,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             var packageDirectory = Path.Combine(TestDirectory, "pkgs", "EvenOdd");
             var package1 = Package.FromDirectory(packageDirectory, CurrentDynamoModel.Logger);
@@ -245,7 +259,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             // This test needs the "isTestMode" flag to be turned off as an exception to be able 
             // to test duplicate custom node def loading.
@@ -258,8 +272,8 @@ namespace Dynamo.PackageManager.Tests
                 PathManager = CurrentDynamoModel.PathManager
             });
 
-            // There are 15 packages in "GitHub\Dynamo\test\pkgs"
-            Assert.AreEqual(15, loader.LocalPackages.Count());
+            // There are 16 packages in "Dynamo\test\pkgs"
+            Assert.AreEqual(16, loader.LocalPackages.Count());
 
             var entries = CurrentDynamoModel.SearchModel.SearchEntries.OfType<CustomNodeSearchElement>();
 
@@ -276,9 +290,9 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
-          
+
             var packageDirectory = Path.Combine(TestDirectory, "pkgs", "EvenOdd");
             var packageDirectory2 = Path.Combine(TestDirectory, "pkgs", "EvenOdd2");
             var package1 = Package.FromDirectory(packageDirectory,CurrentDynamoModel.Logger);
@@ -319,7 +333,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             var packageDirectory = Path.Combine(TestDirectory, "pkgs", "EvenOdd");
             var package1 = Package.FromDirectory(packageDirectory, CurrentDynamoModel.Logger);
@@ -381,7 +395,7 @@ namespace Dynamo.PackageManager.Tests
             var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
 
             loader.PackagesLoaded += libraryLoader.LoadPackages;
-            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+            loader.RequestLoadNodeLibrary += (libraryLoader as ExtensionLibraryLoader).LoadLibraryAndSuppressZTSearchImport;
 
             var packageDirectory = Path.Combine(TestDirectory, "pkgs", "EvenOdd");
             var package1 = Package.FromDirectory(packageDirectory, CurrentDynamoModel.Logger);
@@ -496,12 +510,115 @@ namespace Dynamo.PackageManager.Tests
             var pkg = loader.ScanPackageDirectory(packageDirectory);
             loader.LoadPackages(new List<Package> { pkg });
 
-            // Assert that the Run is disabled temporatily when the package is still loading. 
+            // Assert that the Run is disabled temporarily when the package is still loading. 
             Assert.IsTrue(RunDisabledWhilePackageLoading);
 
             // Assert that the DisableRun flag is set back to false, once the package loading is completed. 
             Assert.IsFalse(EngineController.DisableRun);
         }
+
+        /// <summary>
+        /// This test simulates loading a mixed package type (containing both CN and ZT nodes)
+        /// on the fly and verifying that the nodes in the graph are resolved and run afterwards.
+        /// </summary>
+        [Test]
+        public void MixedPackageLoadTest()
+        {
+            string openPath = Path.Combine(TestDirectory, @"core\MixedPackageLoadTest.dyn");
+            OpenModel(openPath);
+
+            AssertPreviewValue("654bfcc3463e4950824336d4c9bd6126", null);
+            AssertPreviewValue("576f11ed5837460d80f2e354d853de68", null);
+
+            var loader = GetPackageLoader();
+
+            // Load the package when the graph is open in the workspace. 
+            string packageDirectory = Path.Combine(PackagesDirectory, "Mixed Package");
+            var pkg = loader.ScanPackageDirectory(packageDirectory);
+            loader.LoadPackages(new List<Package> { pkg });
+
+            var libs = CurrentDynamoModel.LibraryServices.ImportedLibraries.ToList();
+            Assert.IsTrue(libs.Any(x => File.Exists(Path.Combine(PackagesDirectory, "Mixed Package", "bin", "FrogRiverOne.dll"))));
+
+            // Assert value of loaded ZT node.
+            AssertPreviewValue("654bfcc3463e4950824336d4c9bd6126", 9);
+
+            // Assert value of loaded CN is non-null.
+            AssertNonNull("576f11ed5837460d80f2e354d853de68");
+
+        }
+
+        [Test]
+        public void ScanPackageDirectoryWithCheckingCertificatesEnabledWillNotLoadPackageWithoutValidCertificate()
+        {
+            var loader = new PackageLoader(new [] {PackagesDirectory}, new [] {PackagesDirectorySigned});
+            var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
+
+            loader.PackagesLoaded += libraryLoader.LoadPackages;
+            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+
+            var pkgDir = Path.Combine(PackagesDirectorySigned, "Unsigned Package");
+            var pkg = loader.ScanPackageDirectory(pkgDir, true);
+
+            // Assert that ScanPackageDirectory returns no packages
+            Assert.IsNull(pkg);
+        }
+
+        [Test]
+        public void ScanPackageDirectoryWithCheckingCertificatesEnabledWillNotLoadPackageWithAlteredCertificate()
+        {
+            var loader = new PackageLoader(new[] { PackagesDirectory }, new[] { PackagesDirectorySigned });
+            var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
+
+            loader.PackagesLoaded += libraryLoader.LoadPackages;
+            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+
+            var pkgDir = Path.Combine(PackagesDirectorySigned, "Modfied Signed Package");
+            var pkg = loader.ScanPackageDirectory(pkgDir, true);
+
+            // Assert that ScanPackageDirectory returns no packages
+            Assert.IsNull(pkg);
+        }
+
+        [Test]
+        public void ScanPackageDirectoryWithCheckingCertificatesEnabledWillLoadPackageWithValidCertificate()
+        {
+            var loader = new PackageLoader(new[] { PackagesDirectory }, new[] { PackagesDirectorySigned });
+            var libraryLoader = new ExtensionLibraryLoader(CurrentDynamoModel);
+
+            loader.PackagesLoaded += libraryLoader.LoadPackages;
+            loader.RequestLoadNodeLibrary += libraryLoader.LoadNodeLibrary;
+
+            var pkgDir = Path.Combine(PackagesDirectorySigned, "Signed Package");
+            var pkg = loader.ScanPackageDirectory(pkgDir, true);
+
+            // Assert that ScanPackageDirectory returns a package
+            Assert.IsNotNull(pkg);
+            Assert.IsTrue(pkg.RequiresSignedEntryPoints);
+            loader.LoadPackages(new List<Package> { pkg });
+
+            // Verify that package resolved successfully
+            var libs = CurrentDynamoModel.LibraryServices.ImportedLibraries.ToList();
+            Assert.IsTrue(libs.Contains(Path.Combine(PackagesDirectorySigned, "Signed Package", "bin", "SignedPackage.dll")));
+
+            // Verify that the package are imported successfully
+            var entries = CurrentDynamoModel.SearchModel.SearchEntries.ToList();
+            Assert.IsTrue(entries.Any(x => x.FullName == "SignedPackage.SignedPackage.SignedPackage.Hello"));
+        }
+
+        //FYI this is the code for the SingedPackage zero-touch node used in the previous test
+        //The built and signed dll lives in the test\pkgs_signed\Signed Package\bin directory
+        //This is for furture reference if we need to recreate the package in the future
+        //namespace SignedPackage
+        //{
+        //    public class SignedPackage
+        //    {
+        //        public string Hello()
+        //        {
+        //            return nameof(Hello);
+        //        }
+        //    }
+        //}
 
         [Test]
         public void IsUnderPackageControlIsCorrectForValidFunctionDefinition()

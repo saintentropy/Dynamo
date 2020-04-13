@@ -49,6 +49,7 @@ namespace Dynamo.ViewModels
         private string astText = string.Empty;
         private bool isexplictFrozen;
         private bool canToggleFrozen = true;
+        private bool isRenamed = false;
         #endregion
 
         #region public members
@@ -197,8 +198,32 @@ namespace Dynamo.ViewModels
         /// </summary>
         public string Name
         {
-            get { return nodeLogic.Name; }
+            get 
+            {
+                IsRenamed = OriginalName != nodeLogic.Name;
+                return nodeLogic.Name; 
+            }
             set { nodeLogic.Name = value; }
+        }
+
+        /// <summary>
+        /// The original name of the node.
+        /// </summary>
+        [JsonIgnore]
+        public string OriginalName
+        {
+            get { return nodeLogic.GetOriginalName(); }
+        }
+               
+
+        /// <summary>
+        /// If a node has been renamed.
+        /// </summary>
+        [JsonIgnore]
+        public bool IsRenamed
+        {
+            get { return isRenamed; }
+            set { isRenamed = value; RaisePropertyChanged(nameof(IsRenamed)); }
         }
 
         [JsonIgnore]
@@ -590,7 +615,10 @@ namespace Dynamo.ViewModels
             ++NoteViewModel.StaticZIndex;
         }
 
-        public virtual void Dispose()
+        /// <summary>
+        /// Dispose function
+        /// </summary>
+        public override void Dispose()
         {
             this.NodeModel.PropertyChanged -= logic_PropertyChanged;
 
@@ -601,7 +629,18 @@ namespace Dynamo.ViewModels
                 DynamoViewModel.EngineController.AstBuilt -= EngineController_AstBuilt;
             }
 
+            foreach (var p in InPorts)
+            {
+                p.Dispose();
+            }
+
+            foreach (var p in OutPorts)
+            {
+                p.Dispose();
+            }
+            ErrorBubble.Dispose();
             DynamoSelection.Instance.Selection.CollectionChanged -= SelectionOnCollectionChanged;
+            base.Dispose();
         }
 
         public NodeViewModel(WorkspaceViewModel workspaceViewModel, NodeModel logic, Size preferredSize)

@@ -38,3 +38,5 @@ using System.Windows;
 [assembly: InternalsVisibleTo("Watch3DNodeModelsWpf")]
 [assembly: InternalsVisibleTo("DynamoPerformanceTests")]
 [assembly: InternalsVisibleTo("WorkspaceDependencyViewExtension")]
+[assembly: InternalsVisibleTo("DocumentationBrowserViewExtension")]
+[assembly: InternalsVisibleTo("SystemTestServices")]

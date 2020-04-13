@@ -75,6 +75,8 @@ namespace Dynamo.PackageManager
             get { return packagesDirectories[0]; }
         }
 
+        private readonly List<string> packagesDirectoriesToVerifyCertificates = new List<string>();
+
         public PackageLoader(string overridePackageDirectory)
             : this(new[] { overridePackageDirectory })
         {
@@ -90,6 +92,20 @@ namespace Dynamo.PackageManager
 
             if (error != null)
                 Log(error);
+        }
+
+        /// <summary>
+        /// Initialize a new instance of PackageLoader class
+        /// </summary>
+        /// <param name="packagesDirectories">Default package directories</param>
+        /// <param name="packageDirectoriesToVerify">Default package directories where node library files require certificate verification before loading</param>
+        public PackageLoader(IEnumerable<string> packagesDirectories, IEnumerable<string> packageDirectoriesToVerify)
+            : this(packagesDirectories)
+        {
+            if (packageDirectoriesToVerify == null)
+                throw new ArgumentNullException("packageDirectoriesToVerify");
+
+            this.packagesDirectoriesToVerifyCertificates.AddRange(packageDirectoriesToVerify);
         }
 
         private void OnPackageAdded(Package pkg)
@@ -278,7 +294,7 @@ namespace Dynamo.PackageManager
         /// <param name="packages"></param>
         public void LoadPackages(IEnumerable<Package> packages)
         {
-            var enumerable = packages.ToList();
+            var packageList = packages.ToList();
 
             // This fix is in reference to the crash reported in task: https://jira.autodesk.com/browse/DYN-2101
             // TODO: https://jira.autodesk.com/browse/DYN-2120. we will be re-evaluating this workflow, to find the best clean solution.
@@ -292,17 +308,23 @@ namespace Dynamo.PackageManager
             // Disabling the run here since new packages are being loaded. 
             EngineController.DisableRun = true;
 
-            foreach (var pkg in enumerable)
+            foreach (var pkg in packageList)
             {
-                TryLoadPackageIntoLibrary(pkg);
+                // If the pkg is null, then don't load that package into the Library.
+                if (pkg != null)
+                {
+                    TryLoadPackageIntoLibrary(pkg);
+                }
             }
 
             // Setting back the DisableRun property back to false, as the package loading is completed.
             EngineController.DisableRun = false;
 
-            var assemblies =
-                enumerable.SelectMany(x => x.EnumerateAssembliesInBinDirectory().Where(y => y.IsNodeLibrary));
-            OnPackagesLoaded(assemblies.Select(x => x.Assembly));
+            var assemblies = packageList
+                .SelectMany(p => p.LoadedAssemblies.Where(y => y.IsNodeLibrary))
+                .Select(a => a.Assembly)
+                .ToList();
+            OnPackagesLoaded(assemblies);
         }
 
         public void LoadCustomNodesAndPackages(LoadPackageParams loadPackageParams, CustomNodeManager customNodeManager)
@@ -352,7 +374,20 @@ namespace Dynamo.PackageManager
                 foreach (var dir in
                     Directory.EnumerateDirectories(root, "*", SearchOption.TopDirectoryOnly))
                 {
-                    var pkg = ScanPackageDirectory(dir);
+                    
+                    // verify if the package directory requires certificate verifications
+                    // This is done by default for the package directory defined in PathManager common directory location.
+                    var checkCertificates = false;
+                    foreach (var pathToVerifyCert in packagesDirectoriesToVerifyCertificates)
+                    {
+                        if (root.Contains(pathToVerifyCert))
+                        {
+                            checkCertificates = true;
+                            break;
+                        }
+                    }
+
+                    var pkg = ScanPackageDirectory(dir, checkCertificates);
                     if (pkg != null && preferences.PackageDirectoriesToUninstall.Contains(dir))
                         pkg.MarkForUninstall(preferences);
                 }
@@ -363,6 +398,11 @@ namespace Dynamo.PackageManager
         }
 
         public Package ScanPackageDirectory(string directory)
+        {
+            return ScanPackageDirectory(directory, false);
+        }
+
+        public Package ScanPackageDirectory(string directory, bool checkCertificates)
         {
             try
             {
@@ -382,6 +422,12 @@ namespace Dynamo.PackageManager
                     throw new LibraryLoadFailedException(directory, String.Format(Properties.Resources.NoHeaderPackage, headerPath));
                 }
 
+                // prevent loading unsigned packages if the certificates are required on package dlls
+                if (checkCertificates)
+                {
+                    CheckPackageNodeLibraryCertificates(directory, discoveredPkg);
+                }
+
                 // prevent duplicates
                 if (LocalPackages.All(pkg => pkg.Name != discoveredPkg.Name))
                 {
@@ -397,6 +443,58 @@ namespace Dynamo.PackageManager
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Check the node libraries defined in the package json file are valid and have a valid certificate
+        /// </summary>
+        /// <param name="packageDirectoryPath">path to package location</param>
+        /// <param name="discoveredPkg">package object to check</param>
+        private static void CheckPackageNodeLibraryCertificates(string packageDirectoryPath, Package discoveredPkg)
+        {
+            var dllfiles = new System.IO.DirectoryInfo(discoveredPkg.BinaryDirectory).EnumerateFiles("*.dll");
+            if (discoveredPkg.Header.node_libraries.Count() == 0 && dllfiles.Count() != 0)
+            {
+                throw new LibraryLoadFailedException(packageDirectoryPath,
+                    String.Format(
+                        Resources.InvalidPackageNoNodeLibrariesDefinedInPackageJson,
+                        discoveredPkg.Name, discoveredPkg.RootDirectory));
+            }
+
+            foreach (var nodeLibraryAssembly in discoveredPkg.Header.node_libraries)
+            {
+
+                //Try to get the assembly name from the manifest file
+                string filename;
+                try
+                {
+                    filename = new AssemblyName(nodeLibraryAssembly).Name + ".dll";
+                }
+                catch
+                {
+                    throw new LibraryLoadFailedException(packageDirectoryPath,
+                        String.Format(
+                            Resources.InvalidPackageMalformedNodeLibraryDefinition,
+                            discoveredPkg.Name, discoveredPkg.RootDirectory));
+                }
+
+                //Verify the node library exists in the package bin directory and has a valid certificate
+                var filepath = Path.Combine(discoveredPkg.BinaryDirectory, filename);
+                try
+                {
+                    CertificateVerification.CheckAssemblyForValidCertificate(filepath);
+                }
+                catch (Exception e)
+                {
+                    throw new LibraryLoadFailedException(packageDirectoryPath,
+                        String.Format(
+                            Resources.InvalidPackageNodeLibraryIsNotSigned,
+                            discoveredPkg.Name, discoveredPkg.RootDirectory, e.Message));
+                }
+                
+            }
+
+            discoveredPkg.RequiresSignedEntryPoints = true;
         }
 
         /// <summary>

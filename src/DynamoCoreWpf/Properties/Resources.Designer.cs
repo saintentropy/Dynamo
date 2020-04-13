@@ -1639,46 +1639,6 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable detailed usability data reporting (Instrumentation).
-        /// </summary>
-        public static string DynamoViewSettingMenuEnableDataReporting {
-            get {
-                return ResourceManager.GetString("DynamoViewSettingMenuEnableDataReporting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Detailed reporting sends behaviour data that we use for improving {0}.
-        ///
-        ///It includes the graph being created as well as errors and warnings.
-        /// </summary>
-        public static string DynamoViewSettingMenuEnableDataReportingTooltip {
-            get {
-                return ResourceManager.GetString("DynamoViewSettingMenuEnableDataReportingTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable anonymous summary reporting (Google Analytics).
-        /// </summary>
-        public static string DynamoViewSettingMenuEnableSummaryReporting {
-            get {
-                return ResourceManager.GetString("DynamoViewSettingMenuEnableSummaryReporting", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Anonymous summary reporting sends a minimal set of data for computing user counts, stability and performance metrics.
-        ///
-        ///It does not contain your graph or any personal data.
-        /// </summary>
-        public static string DynamoViewSettingMenuEnableSummaryReportingTooltip {
-            get {
-                return ResourceManager.GetString("DynamoViewSettingMenuEnableSummaryReportingTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fractional Foot.
         /// </summary>
         public static string DynamoViewSettingMenuFractionalFoot {
@@ -1814,6 +1774,24 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Agreement to Collect Usability Data.
+        /// </summary>
+        public static string DynamoViewSettingMenuShowDataReportingDialog {
+            get {
+                return ResourceManager.GetString("DynamoViewSettingMenuShowDataReportingDialog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Display the dialog for user to pick agreement on data collecting..
+        /// </summary>
+        public static string DynamoViewSettingMenuShowDataReportingDialogTooltip {
+            get {
+                return ResourceManager.GetString("DynamoViewSettingMenuShowDataReportingDialogTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Square Centimeter.
         /// </summary>
         public static string DynamoViewSettingMenuSquareCentimeter {
@@ -1891,6 +1869,15 @@ namespace Dynamo.Wpf.Properties {
         public static string DynamoViewSettingsMenuIsolationMode {
             get {
                 return ResourceManager.GetString("DynamoViewSettingsMenuIsolationMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show CodeBlockNode Line Numbers.
+        /// </summary>
+        public static string DynamoViewSettingsMenuShowCodeBlockNodeLineNumber {
+            get {
+                return ResourceManager.GetString("DynamoViewSettingsMenuShowCodeBlockNodeLineNumber", resourceCulture);
             }
         }
         
@@ -2591,6 +2578,15 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read more....
+        /// </summary>
+        public static string InfoBubbleDocumentationLinkText {
+            get {
+                return ResourceManager.GetString("InfoBubbleDocumentationLinkText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error: .
         /// </summary>
         public static string InfoBubbleError {
@@ -3142,6 +3138,15 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to download version {0} of package with id: {1}.  Please try again and report the package if you continue to have problems..
+        /// </summary>
+        public static string MessageFailedToDownloadPackageVersion {
+            get {
+                return ResourceManager.GetString("MessageFailedToDownloadPackageVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No node could be found with that Id..
         /// </summary>
         public static string MessageFailedToFindNodeById {
@@ -3196,6 +3201,15 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load an invalid package..
+        /// </summary>
+        public static string MessageInvalidPackage {
+            get {
+                return ResourceManager.GetString("MessageInvalidPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} elapsed for loading {1} main window..
         /// </summary>
         public static string MessageLoadingTime {
@@ -3241,11 +3255,7 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following packages use a newer version of {0} than you are currently using:
-        ///
-        ///{1}
-        ///
-        ///Do you want to continue?.
+        ///   Looks up a localized string similar to The package or one of its dependencies use a newer version of {0} than you are currently using. Do you want to continue?.
         /// </summary>
         public static string MessagePackageNewerDynamo {
             get {
@@ -3537,6 +3547,24 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description: .
+        /// </summary>
+        public static string NodeTooltipDescription {
+            get {
+                return ResourceManager.GetString("NodeTooltipDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Original node name: .
+        /// </summary>
+        public static string NodeTooltipOriginalName {
+            get {
+                return ResourceManager.GetString("NodeTooltipOriginalName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There was an error while finding node view customizations for {0}. Contact the author of this assembly for more information..
         /// </summary>
         public static string NodeViewCustomizationFindErrorMessage {
@@ -3729,7 +3757,7 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Filter packages that depend on applications outside Dynamo..
+        ///   Looks up a localized string similar to Filter packages that depend on applications outside Dynamo. This feature currently can only filter packages which have been marked manually by package authors during publish..
         /// </summary>
         public static string PackageHostDependencyFilter {
             get {
@@ -4031,6 +4059,15 @@ namespace Dynamo.Wpf.Properties {
         public static string PackageSearchViewDescription {
             get {
                 return ResourceManager.GetString("PackageSearchViewDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Filter by.
+        /// </summary>
+        public static string PackageSearchViewFilterByButton {
+            get {
+                return ResourceManager.GetString("PackageSearchViewFilterByButton", resourceCulture);
             }
         }
         
@@ -4617,6 +4654,24 @@ namespace Dynamo.Wpf.Properties {
         public static string QueryMember {
             get {
                 return ResourceManager.GetString("QueryMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please check if you intended to render this amount of geometry, and consider turning off the preview of other nodes within your graph, lowering the amount of Geometry you wish to render, or turning down the render precision..
+        /// </summary>
+        public static string RenderingMemoryOutageDescription {
+            get {
+                return ResourceManager.GetString("RenderingMemoryOutageDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dynamo has run out of memory trying to render your geometry. The geometry preview has been disabled..
+        /// </summary>
+        public static string RenderingMemoryOutageSummary {
+            get {
+                return ResourceManager.GetString("RenderingMemoryOutageSummary", resourceCulture);
             }
         }
         
