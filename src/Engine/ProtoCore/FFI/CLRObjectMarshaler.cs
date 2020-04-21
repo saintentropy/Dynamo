@@ -1290,7 +1290,7 @@ namespace ProtoFFI
         private void BindObjects(object obj, StackValue dsobj)
         {
 #if DEBUG
-            if (DSObjectMap.ContainsKey(dsobj))
+            if (DSObjectMap.ContainsKey(dsobj.Pointer))
                 throw new InvalidOperationException("Object reference already mapped");
 
             if (CLRObjectMap.ContainsKey(obj))
