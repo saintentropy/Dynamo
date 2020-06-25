@@ -296,7 +296,6 @@
     <Compile Include="ViewModels\Core\DynamoViewModelBranding.cs" />
     <Compile Include="ViewModels\Core\GalleryViewModel.cs" />
     <Compile Include="ViewModels\Core\HomeWorkspaceViewModel.cs" />
-    <Compile Include="ViewModels\Preview\NodeIconViewModel.cs" />
     <Compile Include="ViewModels\Core\SerializationExtensions.cs" />
     <Compile Include="ViewModels\PackageManager\IPackageInstaller.cs" />
     <Compile Include="ViewModels\PackageManager\PackagePathViewModel.cs" />
@@ -340,9 +339,6 @@
     <Compile Include="ViewModels\Watch3D\DynamoEffectsManager.cs" />
     <Compile Include="ViewModels\Watch3D\DynamoRenderTechniquesManager.cs" />
     <Compile Include="Views\Preview\CameraExtensions.cs" />
-    <Compile Include="Views\Preview\NodeIconView.xaml.cs">
-      <DependentUpon>NodeIconView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\Preview\PreviewCompactView.xaml.cs">
       <DependentUpon>PreviewCompactView.xaml</DependentUpon>
     </Compile>
@@ -1147,12 +1143,6 @@
     <Page Include="Views\Preview\InfoBubbleView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="Views\Preview\NodeIconView.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>

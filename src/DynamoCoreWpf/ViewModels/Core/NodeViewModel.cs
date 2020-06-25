@@ -106,9 +106,6 @@ namespace Dynamo.ViewModels
         public InfoBubbleViewModel ErrorBubble { get; set; }
 
         [JsonIgnore]
-        public NodeIconViewModel NodeIcon { get; set; }
-
-        [JsonIgnore]
         public string ToolTipText
         {
             get { return nodeLogic.ToolTipText; }
@@ -591,22 +588,6 @@ namespace Dynamo.ViewModels
             DynamoSelection.Instance.Selection.CollectionChanged += SelectionOnCollectionChanged;
             ZIndex = ++StaticZIndex;
             ++NoteViewModel.StaticZIndex;
-
-            var nodeName = NodeModel.CreationName;
-            if (nodeName == "")
-            {
-                nodeName = NodeModel.GetType().FullName;
-            }
-
-            try
-            {
-                var svm = WorkspaceViewModel.InCanvasSearchViewModel?.FindViewModelForNode(nodeName);
-                NodeIcon = new NodeIconViewModel(DynamoViewModel, nodeName, svm?.LargeIcon);
-            }
-            catch
-            {
-                NodeIcon = new NodeIconViewModel(DynamoViewModel, nodeName, null);
-            }
         }
 
         /// <summary>
@@ -633,7 +614,6 @@ namespace Dynamo.ViewModels
                 p.Dispose();
             }
             ErrorBubble.Dispose();
-            NodeIcon.Dispose();
             DynamoSelection.Instance.Selection.CollectionChanged -= SelectionOnCollectionChanged;
             base.Dispose();
         }
@@ -750,12 +730,10 @@ namespace Dynamo.ViewModels
                 case "X":
                     RaisePropertyChanged("Left");
                     UpdateErrorBubblePosition();
-                    UpdateNodeIconPosition();
                     break;
                 case "Y":
                     RaisePropertyChanged("Top");
                     UpdateErrorBubblePosition();
-                    UpdateNodeIconPosition();
                     break;
                 case "InteractionEnabled":
                     RaisePropertyChanged("IsInteractionEnabled");
@@ -780,19 +758,16 @@ namespace Dynamo.ViewModels
                 case "Width":
                     RaisePropertyChanged("Width");
                     UpdateErrorBubblePosition();
-                    UpdateNodeIconPosition();
                     break;
                 case "Height":
                     RaisePropertyChanged("Height");
                     UpdateErrorBubblePosition();
-                    UpdateNodeIconPosition();
                     break;
                 case "DisplayLabels":
                     RaisePropertyChanged("IsDisplayingLables");
                     break;
                 case "Position":
                     UpdateErrorBubblePosition();
-                    UpdateNodeIconPosition();
                     break;
                 case "ForceReExecuteOfNode":
                     RaisePropertyChanged("WillForceReExecuteOfNode");
@@ -848,22 +823,6 @@ namespace Dynamo.ViewModels
                 BotRight = GetBotRight()
             };
             ErrorBubble.UpdatePositionCommand.Execute(data);
-        }
-
-        private void UpdateNodeIconPosition()
-        {
-            if (NodeIcon == null)
-                return;
-            var data = new NodeIconDataPacket
-            {
-                TopLeft = GetTopLeft(),
-                BotRight = GetBotRight()
-            };
-            NodeIcon.UpdatePositionCommand.Execute(data);
-
-            //Todo validate delegate command vs direct property update
-            //NodeIcon.TargetTopLeft = GetTopLeft();
-            //NodeIcon.TargetBotRight = GetBotRight();
         }
 
         private void ShowHelp(object parameter)

@@ -23,10 +23,6 @@
         <controls:InfoBubbleView></controls:InfoBubbleView>
     </DataTemplate>
 
-    <DataTemplate DataType="{x:Type viewModels:NodeIconViewModel}">
-        <controls:NodeIconView></controls:NodeIconView>
-    </DataTemplate>
-
     <DataTemplate DataType="{x:Type viewModels:AnnotationViewModel}">
         <nodes:AnnotationView></nodes:AnnotationView>
     </DataTemplate>
