@@ -1,0 +1,9 @@
+﻿<ResourceDictionary   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:icon="clr-namespace:NodeIcon;assembly=NodeIcon">
+
+    <DataTemplate DataType="{x:Type icon:NodeIconViewModel}">
+        <icon:NodeIconView></icon:NodeIconView>
+    </DataTemplate>
+
+</ResourceDictionary>

@@ -2,6 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamoCore", "DynamoCore\DynamoCore.csproj", "{7858FA8C-475F-4B8E-B468-1F8200778CF8}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -234,6 +235,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IronPythonExtension", "IronPythonExtension\IronPythonExtension.csproj", "{182FCA4E-B6EF-451F-9EC4-7BF2C622F4F7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PythonMigrationViewExtension", "PythonMigrationViewExtension\PythonMigrationViewExtension.csproj", "{10AF430D-0D3A-49CE-A63D-848912959745}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodeIcon", "NodeIconViewExtension\NodeIcon.csproj", "{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -859,6 +861,14 @@ Global
 		{10AF430D-0D3A-49CE-A63D-848912959745}.Release|Any CPU.Build.0 = Release|Any CPU
 		{10AF430D-0D3A-49CE-A63D-848912959745}.Release|x64.ActiveCfg = Release|Any CPU
 		{10AF430D-0D3A-49CE-A63D-848912959745}.Release|x64.Build.0 = Release|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Debug|x64.Build.0 = Debug|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Release|x64.ActiveCfg = Release|Any CPU
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -934,6 +944,7 @@ Global
 		{1A5DC90A-477E-4D4A-87BD-0BFB01F056CE} = {88D45B00-E564-41DB-B57C-9509646CAA49}
 		{182FCA4E-B6EF-451F-9EC4-7BF2C622F4F7} = {88D45B00-E564-41DB-B57C-9509646CAA49}
 		{10AF430D-0D3A-49CE-A63D-848912959745} = {88D45B00-E564-41DB-B57C-9509646CAA49}
+		{4F05177C-70DE-4E6E-B8F8-EF03D3813CC7} = {88D45B00-E564-41DB-B57C-9509646CAA49}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89CB19C6-BF0A-4E6A-BFDA-79D143EAB59D}
