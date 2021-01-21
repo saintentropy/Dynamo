@@ -614,7 +614,10 @@ namespace ProtoFFI
         private static readonly Dictionary<Type, FFIObjectMarshaler> mPrimitiveMarshalers;
         private Type mCachedObjType;
         private int mCachedType;
-
+        private string mCachedExpectedDSTypeName;
+        private string mCachedTypeFullName;
+        private FFIObjectMarshaler mCachedMarshaler;
+        
         static CLRObjectMarshaler()
         {
             mPrimitiveMarshalers = new Dictionary<Type, FFIObjectMarshaler>();
@@ -677,6 +680,9 @@ namespace ProtoFFI
             return marshaller;
         }
 
+
+        private string previousExpectedDSType;
+        
         /// <summary>
         /// Marshals the given CLR object to expectedDSType StackValue
         /// </summary>
@@ -687,13 +693,28 @@ namespace ProtoFFI
         /// <returns>StackValue</returns>
         public override StackValue Marshal(object obj, ProtoCore.Runtime.Context context, Interpreter dsi, ProtoCore.Type expectedDSType)
         {
+            FFIObjectMarshaler marshaler;
+
             //1. Null object is marshaled as null
             if (obj == null)
                 return StackValue.Null;
 
-            //2. Get appropriate marshaler for the expectedDSType and objType
-            var marshaler = GetMarshalerForDsType(expectedDSType, obj.GetType());
-
+            
+            var type = obj.GetType();
+            if (expectedDSType.Name == mCachedExpectedDSTypeName && type.FullName == mCachedTypeFullName)
+            {
+                //2. Get previously cached marshaler;
+                marshaler = mCachedMarshaler;
+            }
+            else
+            {
+                //2. Get appropriate marshaler for the expectedDSType and objType
+                marshaler = GetMarshalerForDsType(expectedDSType, type);
+                mCachedExpectedDSTypeName = expectedDSType.Name;
+                mCachedTypeFullName = type.FullName;
+                mCachedMarshaler = marshaler;
+            }
+            
             //3. Got a marshaler, now marshal it.
             if (marshaler != null)
                 return marshaler.Marshal(obj, context, dsi, expectedDSType);
@@ -748,6 +769,11 @@ namespace ProtoFFI
             return CreateCLRObject(dsObject, context, dsi, expectedCLRType);
         }
 
+        private string mCachedClrTypeFullName;
+        private AddressType mCachedOpType;
+        private int mCachedMetaDataType;
+        private FFIObjectMarshaler mCachedFfiObjectUnMarshaler;
+
         /// <summary>
         /// If clrType is IEnumerable, returns a CollectionMarshaler, otherwise
         /// gets marshaler for the given clrType and if it fails
@@ -764,8 +790,16 @@ namespace ProtoFFI
         private FFIObjectMarshaler GetMarshalerForCLRType(Type clrType, StackValue value)
         {
             var dsType = value.optype;
-
+            var metaDataType = value.metaData.type;
+            var clrTypeFullName = clrType.FullName;
             FFIObjectMarshaler marshaler = null;
+
+            if (clrTypeFullName == mCachedClrTypeFullName && dsType == mCachedOpType &&
+                metaDataType == mCachedMetaDataType)
+            {
+                return mCachedFfiObjectUnMarshaler;
+            }
+            
             //Expected CLR type is object, get marshaled clrType from dsType
             Type expectedType = clrType;
             if (expectedType == typeof(object))
@@ -784,26 +818,43 @@ namespace ProtoFFI
             {
                 var type = PrimitiveMarshaler.CreateType(ProtoCore.PrimitiveType.Var);
                 type.rank = ProtoCore.DSASM.Constants.kArbitraryRank;
-                return new DictionaryMarshaler(this, type);
+                marshaler = new DictionaryMarshaler(this, type);
+
+                SetCachedValuesForUnMarshaler(marshaler, dsType, metaDataType, clrTypeFullName);
+                return marshaler;
             }
 
             if (isArray)
             {
                 var type = PrimitiveMarshaler.CreateType(ProtoCore.PrimitiveType.Var);
                 type.rank = ProtoCore.DSASM.Constants.kArbitraryRank;
-                return new ArrayMarshaler(this, type);
+                marshaler = new ArrayMarshaler(this, type);
+                
+                SetCachedValuesForUnMarshaler(marshaler, dsType, metaDataType, clrTypeFullName);
+                return marshaler;
             }
 
             // If the input ds object is pointer type then it can't be marshaled as primitive.
             if (dsType == AddressType.Pointer)
             {
+                SetCachedValuesForUnMarshaler(null, dsType, metaDataType, clrTypeFullName);
                 return null;
             }
 
             if (!mPrimitiveMarshalers.TryGetValue(expectedType, out marshaler))
                 mPrimitiveMarshalers.TryGetValue(GetPrimitiveType(dsType), out marshaler);
 
+            SetCachedValuesForUnMarshaler(marshaler, dsType, metaDataType, clrTypeFullName);
             return marshaler;
+        }
+
+        private void SetCachedValuesForUnMarshaler(FFIObjectMarshaler marshaler, AddressType dsType, int metaDataType,
+            string clrTypeFullName)
+        {
+            mCachedFfiObjectUnMarshaler = marshaler;
+            mCachedOpType = dsType;
+            mCachedMetaDataType = metaDataType;
+            mCachedClrTypeFullName = clrTypeFullName;
         }
 
         /// <summary>
