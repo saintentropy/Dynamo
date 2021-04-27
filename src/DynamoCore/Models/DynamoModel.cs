@@ -46,6 +46,7 @@ using Compiler = ProtoAssociative.Compiler;
 // Dynamo package manager
 using DefaultUpdateManager = Dynamo.Updates.UpdateManager;
 using FunctionGroup = Dynamo.Engine.FunctionGroup;
+using Type = System.Type;
 using Utils = Dynamo.Graph.Nodes.Utilities;
 
 namespace Dynamo.Models
@@ -1421,6 +1422,13 @@ namespace Dynamo.Models
                     LibraryServices.ImportLibrary(assem.Location);
                 }
 
+                var containsINodeViewCustomization = assem.GetTypes().Any(t =>
+                    !t.IsAbstract &&
+                    Enumerable.Any<Type>(t.GetInterfaces(), x => x.Name.Contains("INodeViewCustomization")));
+
+                if(containsINodeViewCustomization)
+                    Loader.LoadNodesFromAssembly(assem, Context, new List<TypeLoadData>(), new List<TypeLoadData>());
+                
                 return;
             }
 
