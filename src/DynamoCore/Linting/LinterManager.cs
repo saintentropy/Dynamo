@@ -21,7 +21,9 @@ namespace Dynamo.Linting
     {
         #region Private fields
         private readonly IExtensionManager extensionManager;
+        private readonly DynamoModel dynamoModel;
         private LinterExtensionDescriptor activeLinter;
+        internal LinterExtensionDescriptor DeserializedLinter;
 
         #endregion
 

@@ -708,7 +708,7 @@ namespace Dynamo.Graph.Workspaces
             if (linterDescriptor is null)
                 return false;
 
-            linterManager.ActiveLinter = linterDescriptor;
+            linterManager.DeserializedLinter = linterDescriptor;
             
             return true;
         }
