@@ -68,9 +68,10 @@ namespace Dynamo.Linting
 
         #endregion
 
-        public LinterManager(IExtensionManager extensionManager)
+        public LinterManager(IExtensionManager extensionManager, DynamoModel dynamoModel)
         {
             this.extensionManager = extensionManager;
+            this.dynamoModel = dynamoModel;
             AvailableLinters = new HashSet<LinterExtensionDescriptor>();
             RuleEvaluationResults = new ObservableCollection<IRuleEvaluationResult>();
 
@@ -100,7 +101,7 @@ namespace Dynamo.Linting
         {
             LinterExtensionBase.LinterExtensionReady += OnLinterExtensionReady;
             LinterRule.RuleEvaluated += OnRuleEvaluated;
-
+            dynamoModel.ComputeModelDeserialized += RegisterDeserializedLinter;
         }
 
         private void OnLinterExtensionReady(LinterExtensionDescriptor extensionDescriptor)
@@ -171,5 +172,14 @@ namespace Dynamo.Linting
         }
 
         #endregion
+
+        internal void RegisterDeserializedLinter()
+        {
+            if (DeserializedLinter != null)
+            {
+                ActiveLinter = DeserializedLinter;
+                DeserializedLinter = null;
+            }
+        }
     }
 }
