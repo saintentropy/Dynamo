@@ -807,7 +807,7 @@ namespace Dynamo.Models
             extensionManager.MessageLogged += LogMessage;
             var extensions = config.Extensions ?? LoadExtensions();
 
-            LinterManager = new LinterManager(this.ExtensionManager);
+            LinterManager = new LinterManager(this.ExtensionManager, this);
             
             // when dynamo is ready, alert the loaded extensions
             DynamoReady += (readyParams) =>
@@ -2612,6 +2612,7 @@ namespace Dynamo.Models
         /// </summary>
         public void ClearCurrentWorkspace()
         {
+            OnWorkspaceClearingStarted(CurrentWorkspace);
             OnWorkspaceClearing();
 
             CurrentWorkspace.Clear();
