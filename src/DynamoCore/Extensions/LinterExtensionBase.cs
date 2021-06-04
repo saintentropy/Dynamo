@@ -88,6 +88,8 @@ namespace Dynamo.Extensions
 
             LinkToWorkspace(ReadyParamsRef.CurrentWorkspaceModel as HomeWorkspaceModel);
             SetupComplete = true;
+            
+            OnActivated();
         }
 
         /// <summary>
@@ -109,6 +111,8 @@ namespace Dynamo.Extensions
             UnlinkFromCurrentWorkspace();
 
             SetupComplete = false;
+            
+            OnDeactivated();
         }
 
         #endregion
@@ -234,6 +238,8 @@ namespace Dynamo.Extensions
                 SubscribeNodeEvents();
                 SubscribeGraphEvents();
                 InitializeRules();
+                
+                OnLink();
             }
         }
 
@@ -244,6 +250,8 @@ namespace Dynamo.Extensions
                 UnsubscribeGraphEvents(currentWorkspace);
                 DynamoModel.OnRequestDispatcherInvoke(() => { linterManager.RuleEvaluationResults.Clear(); });
                 currentWorkspace = null;
+                
+                OnUnlink();
             }
         }
 
@@ -353,6 +361,37 @@ namespace Dynamo.Extensions
             }
 
         }
+        #endregion
+
+        #region Events
+        internal event Action OnLinterExtensionActivated;
+
+        private void OnActivated()
+        {
+            OnLinterExtensionActivated?.Invoke();
+        }
+
+        internal event Action OnLinterExtensionDeactivated;
+
+        private void OnDeactivated()
+        {
+            OnLinterExtensionDeactivated?.Invoke();
+        }
+
+        internal event Action OnLinterUnlinkFromWorkspace;
+
+        private void OnUnlink()
+        {
+            OnLinterUnlinkFromWorkspace?.Invoke();
+        }
+
+        internal event Action OnLinterLinkToWorkspace;
+
+        private void OnLink()
+        {
+            OnLinterLinkToWorkspace?.Invoke();
+        }
+
         #endregion
 
     }
