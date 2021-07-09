@@ -1,8 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
+
+using DynamoUnits;
+using ProtoCore.AST.AssociativeAST;
+using Newtonsoft.Json;
+using ProtoCore.AST.ImperativeAST;
+using AstFactory = ProtoCore.AST.AssociativeAST.AstFactory;
+using DoubleNode = ProtoCore.AST.AssociativeAST.DoubleNode;
+using System.Collections;
+using DynamoUnits.Properties;
 
 namespace DynamoUnits
 {
@@ -34,7 +43,7 @@ namespace DynamoUnits
         {
             get
             {
-                var units = Utilities.ForgeUnitsEngine.getConvertibleUnits(TypeId);
+                Dictionary<string, ForgeUnitsCLR.Unit> units = Utilities.ForgeUnitsEngine.getConvertibleUnits(TypeId);
                 return Utilities.ConvertUnitsDictionaryToList(units);
             }
         }

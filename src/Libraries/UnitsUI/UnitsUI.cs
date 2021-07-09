@@ -35,190 +35,14 @@ using AstFactory = ProtoCore.AST.AssociativeAST.AstFactory;
 using DoubleNode = ProtoCore.AST.AssociativeAST.DoubleNode;
 using Dynamo.Utilities;
 using Dynamo.Engine.CodeGeneration;
+using System.Collections;
+using VMDataBridge;
+using UnitsUI.Converters;
+using System.Collections.ObjectModel;
+using Utilities = DynamoUnits.Utilities;
 
 namespace UnitsUI
 {
-    public abstract class MeasurementInputBaseNodeViewCustomization : INodeViewCustomization<MeasurementInputBase>
-    {
-        private MeasurementInputBase mesBaseModel;
-        private DynamoViewModel dynamoViewModel;
-        private DynamoTextBox tb;
-
-        public void CustomizeView(MeasurementInputBase model, NodeView nodeView)
-        {
-            this.mesBaseModel = model;
-            this.dynamoViewModel = nodeView.ViewModel.DynamoViewModel;
-
-            //add an edit window option to the 
-            //main context window
-            var editWindowItem = new MenuItem()
-            {
-                Header = Properties.Resources.EditHeader,
-                IsCheckable = false,
-                Tag = nodeView.ViewModel.DynamoViewModel
-            };
-
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
-
-            editWindowItem.Click += editWindowItem_Click;
-
-            //add a text box to the input grid of the control
-            this.tb = new DynamoTextBox();
-            tb.HorizontalAlignment = HorizontalAlignment.Stretch;
-            tb.VerticalAlignment = VerticalAlignment.Center;
-            nodeView.inputGrid.Children.Add(tb);
-            Grid.SetColumn(tb, 0);
-            Grid.SetRow(tb, 0);
-            tb.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
-
-            tb.DataContext = model;
-            tb.BindToProperty(new Binding("Value")
-            {
-                Mode = BindingMode.TwoWay,
-                Converter = new MeasureConverter(),
-                ConverterParameter = model.Measure,
-                NotifyOnValidationError = false,
-                Source = model,
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
-            });
-
-            tb.OnChangeCommitted += TextChangehandler; 
-
-            (nodeView.ViewModel.DynamoViewModel.Model.PreferenceSettings).PropertyChanged += PreferenceSettings_PropertyChanged;
-        }
-
-        private void TextChangehandler()
-        {
-            mesBaseModel.OnNodeModified();
-        }
-
-        void PreferenceSettings_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "AreaUnit" ||
-                e.PropertyName == "VolumeUnit" ||
-                e.PropertyName == "LengthUnit" ||
-                e.PropertyName == "NumberFormat")
-            {
-                this.mesBaseModel.ForceValueRaisePropertyChanged();
-
-                this.mesBaseModel.OnNodeModified();
-            }
-        }
-
-        private void editWindowItem_Click(object sender, RoutedEventArgs e)
-        {
-            var viewModel = this.dynamoViewModel;
-            var editWindow = new EditWindow(viewModel) { DataContext = this.mesBaseModel };
-            editWindow.BindToProperty(null, new Binding("Value")
-            {
-                Mode = BindingMode.TwoWay,
-                Converter = new MeasureConverter(),
-                ConverterParameter = this.mesBaseModel.Measure,
-                NotifyOnValidationError = false,
-                Source = this.mesBaseModel,
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
-            });
-
-            editWindow.ShowDialog();
-        }
-
-        public void Dispose()
-        {
-            tb.OnChangeCommitted -= TextChangehandler;
-        }
-    }
-
-    public abstract class MeasurementInputBase : NodeModel
-    {
-        [JsonIgnore]
-        public SIUnit Measure { get; protected set; }
-
-        public double Value
-        {
-            get
-            {
-                return Measure.Value;
-            }
-            set
-            {
-                Measure.Value = value;
-                RaisePropertyChanged("Value");
-            }
-        }
-
-        public MeasurementInputBase(IEnumerable<PortModel> inPorts, IEnumerable<PortModel> outPorts):base(inPorts, outPorts) { }
-
-        public MeasurementInputBase() : base() { }
-
-        internal void ForceValueRaisePropertyChanged()
-        {
-            RaisePropertyChanged("Value");
-        }
-
-        protected override void SerializeCore(XmlElement nodeElement, SaveContext context)
-        {
-            base.SerializeCore(nodeElement, context);
-            XmlElement outEl = nodeElement.OwnerDocument.CreateElement(typeof(double).FullName);
-            outEl.SetAttribute("value", Value.ToString(CultureInfo.InvariantCulture));
-            nodeElement.AppendChild(outEl);
-        }
-
-        protected override void DeserializeCore(XmlElement nodeElement, SaveContext context)
-        {
-            base.DeserializeCore(nodeElement, context);
-            foreach (XmlNode subNode in nodeElement.ChildNodes)
-            {
-                // this node now stores a double, having previously stored a measure type
-                // by checking for the measure type as well we allow for loading of older files.
-                if (subNode.Name.Equals(typeof(double).FullName) || subNode.Name.Equals("Dynamo.Measure.Foot"))
-                {
-                    Value = DeserializeValue(subNode.Attributes[0].Value);
-                }
-            }
-        }
-
-        public override string PrintExpression()
-        {
-            return Value.ToString();
-        }
-
-        protected double DeserializeValue(string val)
-        {
-            try
-            {
-                return Convert.ToDouble(val, CultureInfo.InvariantCulture);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        protected override bool UpdateValueCore(UpdateValueParams updateValueParams)
-        {
-            string name = updateValueParams.PropertyName;
-            string value = updateValueParams.PropertyValue;
-
-            if (name == "Value")
-            {
-                var converter = new MeasureConverter();
-                this.Value = ((double)converter.ConvertBack(value, typeof(double), Measure, null));
-                return true; // UpdateValueCore handled.
-            }
-
-            return base.UpdateValueCore(updateValueParams);
-        }
-
-    }
-
-    public class LengthFromStringNodeViewCustomization : MeasurementInputBaseNodeViewCustomization,
-                                                         INodeViewCustomization<LengthFromString>
-    {
-        public void CustomizeView(LengthFromString model, NodeView nodeView)
-        {
-            base.CustomizeView(model, nodeView);
-        }
-    }
 
     [NodeName("Number From Feet and Inches")]
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
@@ -278,14 +102,7 @@ namespace UnitsUI
         }
     }
 
-    public class AreaFromStringNodeViewCustomization : MeasurementInputBaseNodeViewCustomization,
-                                                     INodeViewCustomization<AreaFromString>
-    {
-        public void CustomizeView(AreaFromString model, NodeView nodeView)
-        {
-            base.CustomizeView(model, nodeView);
-        }
-    }
+
 
     [NodeName("Area From String")]
     [NodeCategory("Units.Area.Create")]
@@ -318,14 +135,7 @@ namespace UnitsUI
         }
     }
 
-    public class VolumeFromStringNodeViewCustomization : MeasurementInputBaseNodeViewCustomization,
-                                                 INodeViewCustomization<VolumeFromString>
-    {
-        public void CustomizeView(VolumeFromString model, NodeView nodeView)
-        {
-            base.CustomizeView(model, nodeView);
-        }
-    }
+  
 
     [NodeName("Volume From String")]
     [NodeCategory("Units.Volume.Create")]
@@ -395,7 +205,8 @@ namespace UnitsUI
 
     [NodeName("Parse Unit Input")]
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
-    [NodeDescription("Parse string to unit value")]
+    [NodeDescription("ParseUnitInputDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("ParseUnitInputSearchTags", typeof(UnitsUI.Properties.Resources))]
     [IsDesignScriptCompatible]
     public class UnitInput : CoreNodeModels.Input.String
     {
@@ -407,9 +218,12 @@ namespace UnitsUI
             }
         }
         
-        private DynamoUnits.Unit selectedUnit;
+        
         private List<DynamoUnits.Unit> items;
 
+        /// <summary>
+        /// List of unit type ids.
+        /// </summary>
         [JsonIgnore]
         public List<DynamoUnits.Unit> Items
         {
@@ -417,10 +231,14 @@ namespace UnitsUI
             private set
             {
                 items = value;
-                RaisePropertyChanged("Items");
+                RaisePropertyChanged(nameof(Items));
             }
         }
-        
+
+        private DynamoUnits.Unit selectedUnit;
+        /// <summary>
+        /// Selected unit type id to convert to.
+        /// </summary>
         [JsonProperty("UnitType"), JsonConverter(typeof(ForgeUnitConverter))]
         public DynamoUnits.Unit SelectedUnit
         {
@@ -428,7 +246,7 @@ namespace UnitsUI
             set
             {
                 selectedUnit = value;
-                RaisePropertyChanged("SelectedUnit");
+                RaisePropertyChanged(nameof(SelectedUnit));
             }
         }
 
@@ -522,131 +340,12 @@ namespace UnitsUI
         }
     }
 
-    public class StringInputNodeViewCustomization : INodeViewCustomization<UnitInput>
-    {
-        private DynamoViewModel dynamoViewModel;
-        private UnitInput nodeModel;
-        private MenuItem editWindowItem;
-
-        public void CustomizeView(UnitInput stringInput, NodeView nodeView)
-        {
-            this.nodeModel = stringInput;
-            this.dynamoViewModel = nodeView.ViewModel.DynamoViewModel;
-
-            this.editWindowItem = new MenuItem
-            {
-                Header = Dynamo.Wpf.Properties.Resources.StringInputNodeEditMenu,
-                IsCheckable = false
-            };
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
-
-            editWindowItem.Click += editWindowItem_Click;
-
-            var grid = new Grid()
-            {
-                Height = Double.NaN,
-                Width = Double.NaN
-            };
-
-            RowDefinition rowDef1 = new RowDefinition();
-            RowDefinition rowDef2 = new RowDefinition();
-
-            grid.RowDefinitions.Add(rowDef1);
-            grid.RowDefinitions.Add(rowDef2);
-            
-            
-            //add a text box to the input grid of the control
-            var tb = new StringTextBox
-            {
-                TextWrapping = TextWrapping.Wrap,
-                MinHeight = Configurations.PortHeightInPixels,
-                MaxWidth = 200,
-                VerticalAlignment = VerticalAlignment.Stretch
-                
-            };
-            tb.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
-            
-            grid.Children.Add(tb);
-            
-            Grid.SetColumn(tb, 0);
-            Grid.SetRow(tb, 0);
-
-            tb.DataContext = stringInput;
-            tb.BindToProperty(new Binding("Value")
-            {
-                Mode = BindingMode.TwoWay,
-                Converter = new StringDisplay(),
-                Source = stringInput,
-                UpdateSourceTrigger = UpdateSourceTrigger.Explicit
-            });
-
-            //add a drop down list to the window
-            var combo = new ComboBox
-            {
-                Width = System.Double.NaN,
-                MinWidth = 100,
-                Height = Configurations.PortHeightInPixels,
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            grid.Children.Add(combo);
-            Grid.SetColumn(combo, 0);
-            Grid.SetRow(combo, 1);
-
-            //combo.DropDownOpened += combo_DropDownOpened;
-            combo.SelectionChanged += delegate
-            {
-                if (combo.SelectedIndex != -1)
-                    nodeModel.OnNodeModified();
-            };
-
-            combo.DataContext = nodeModel;
-
-            // bind this combo box to the selected item hash
-            var bindingVal = new System.Windows.Data.Binding("Items")
-            {
-                Source = nodeModel
-            };
-            combo.SetBinding(ItemsControl.ItemsSourceProperty, bindingVal);
-
-            // bind the selected index to the model property SelectedIndex
-            var indexBinding = new Binding("SelectedUnit")
-            {
-                Mode = BindingMode.TwoWay,
-                Source = nodeModel
-            };
-            combo.SetBinding(Selector.SelectedItemProperty, indexBinding);
-
-            nodeView.inputGrid.Children.Add(grid);
-        }
-
-        public void editWindowItem_Click(object sender, RoutedEventArgs e)
-        {
-            var editWindow = new EditWindow(this.dynamoViewModel) { DataContext = this.nodeModel };
-            editWindow.BindToProperty(
-                null,
-                new Binding("Value")
-                {
-                    Mode = BindingMode.TwoWay,
-                    Converter = new StringDisplay(),
-                    NotifyOnValidationError = false,
-                    Source = this.nodeModel,
-                    UpdateSourceTrigger = UpdateSourceTrigger.Explicit
-                });
-
-            editWindow.ShowDialog();
-        }
-
-        public void Dispose()
-        {
-            editWindowItem.Click -= editWindowItem_Click;
-        }
-    }
+   
 
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
     [NodeName("Convert Units")]
-    [NodeDescription("Convert Between Many Units")]
-    //[NodeSearchTags("DynamoConvertSearchTags", typeof(Properties.Resources))]
+    [NodeDescription("ConvertUnitsDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("ConvertUnitsSearchTags", typeof(UnitsUI.Properties.Resources))]
     [OutPortTypes("number")]
     [IsDesignScriptCompatible]
     public class ForgeDynamoConvert : NodeModel
@@ -673,6 +372,10 @@ namespace UnitsUI
             }
         }
 
+        /// <summary>
+        /// This corresponds to the list of available quantities we can select to convert in.
+        /// Examples of this would be 'length', 'time', 'volume'.
+        /// </summary>
         [JsonIgnore]
         public List<DynamoUnits.Quantity> QuantityConversionSource
         {
@@ -680,10 +383,14 @@ namespace UnitsUI
             private set
             {
                 quantityConversionSource = value;
-                RaisePropertyChanged("SelectedQuantityConversionSource");
+                RaisePropertyChanged(nameof(QuantityConversionSource));
             }
         }
 
+        /// <summary>
+        /// This corresponds to the a list of available units we are converting FROM.
+        /// Examples of this are 'meters', 'millimeters', 'feet'.
+        /// </summary>
         [JsonIgnore]
         public List<DynamoUnits.Unit> SelectedFromConversionSource
         {
@@ -691,10 +398,14 @@ namespace UnitsUI
             set
             {
                 selectedFromConversionSource = value;
-                RaisePropertyChanged("SelectedFromConversionSource");
+                RaisePropertyChanged(nameof(SelectedFromConversionSource));
             }
         }
 
+        /// <summary>
+        /// This corresponds to the a list of available units we are converting TO.
+        /// Examples of this are 'meters', 'millimeters', 'feet'.
+        /// </summary>
         [JsonIgnore]
         public List<DynamoUnits.Unit> SelectedToConversionSource
         {
@@ -702,10 +413,13 @@ namespace UnitsUI
             set
             {
                 selectedToConversionSource = value;
-                RaisePropertyChanged("SelectedToConversionSource");
+                RaisePropertyChanged(nameof(SelectedToConversionSource));
             }
         }
-
+        /// <summary>
+        /// This corresponds to selected quantity we will be converting in.
+        /// An example of this is 'length'.
+        /// </summary>
         [JsonProperty("MeasurementType"), JsonConverter(typeof(ForgeQuantityConverter))]
         public DynamoUnits.Quantity SelectedQuantityConversion
         {
@@ -720,10 +434,13 @@ namespace UnitsUI
                 SelectedFromConversion = SelectedFromConversionSource.First();
                 SelectedToConversion = SelectedToConversionSource.First();
 
-                RaisePropertyChanged("SelectedQuantityConversion");
+                RaisePropertyChanged(nameof(SelectedQuantityConversion));
             }
         }
-
+        /// <summary>
+        /// This corresponds to the selected unit we are converting FROM.
+        /// An example of this would be 'meters'.
+        /// </summary>
         [JsonProperty("FromConversion"), JsonConverter(typeof(ForgeUnitConverter))]
         public DynamoUnits.Unit SelectedFromConversion
         {
@@ -732,10 +449,13 @@ namespace UnitsUI
             {
                 selectedFromConversion = value;
                 this.OnNodeModified();
-                RaisePropertyChanged("SelectedFromConversion");
+                RaisePropertyChanged(nameof(SelectedFromConversion));
             }
         }
-
+        /// <summary>
+        /// This corresponds to the selected unit we are converting TO.
+        /// An example of this would be 'feet'.
+        /// </summary>
         [JsonProperty("ToConversion"), JsonConverter(typeof(ForgeUnitConverter))]
         public DynamoUnits.Unit SelectedToConversion
         {
@@ -744,10 +464,12 @@ namespace UnitsUI
             {
                 selectedToConversion = value;
                 this.OnNodeModified();
-                RaisePropertyChanged("SelectedToConversion");
+                RaisePropertyChanged(nameof(SelectedToConversion));
             }
         }
-
+        /// <summary>
+        /// Property alerting the UI whether a selection from the dropdowns is enabled.
+        /// </summary>
         [JsonIgnore]
         public bool IsSelectionFromBoxEnabled
         {
@@ -755,10 +477,13 @@ namespace UnitsUI
             set
             {
                 isSelectionFromBoxEnabled = value;
-                RaisePropertyChanged("IsSelectionFromBoxEnabled");
+                RaisePropertyChanged(nameof(IsSelectionFromBoxEnabled));
             }
         }
 
+        /// <summary>
+        /// Provides the SelectionFromBox with a tooltip describing the conversion.
+        /// </summary>
         [JsonIgnore]
         public string SelectionFromBoxToolTip
         {
@@ -766,7 +491,7 @@ namespace UnitsUI
             set
             {
                 selectionFromBoxToolTip = value;
-                RaisePropertyChanged("SelectionFromBoxToolTip");
+                RaisePropertyChanged(nameof(SelectionFromBoxToolTip));
             }
         }
 
@@ -815,7 +540,9 @@ namespace UnitsUI
 
             return new[] { AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), node) };
         }
-
+        /// <summary>
+        /// This methods flips the 'to' and 'from' unit of the conversion.
+        /// </summary>
         public void ToggleDropdownValues()
         {
             var temp = this.SelectedFromConversion;
@@ -881,247 +608,34 @@ namespace UnitsUI
         #endregion
     }
 
-    public class ForgeConverterViewModel : NotificationObject
-    {
-        private readonly ForgeDynamoConvert dynamoConvertModel;
-        public DelegateCommand ToggleButtonClick { get; set; }
-        private readonly NodeViewModel nodeViewModel;
-        private readonly NodeModel nodeModel;
+   
 
-        public DynamoUnits.Quantity SelectedQuantityConversion
-        {
-            get { return dynamoConvertModel.SelectedQuantityConversion; }
-            set
-            {
-                dynamoConvertModel.SelectedQuantityConversion = value;
-            }
-        }
+    
 
-        public DynamoUnits.Unit SelectedFromConversion
-        {
-            get { return dynamoConvertModel.SelectedFromConversion; }
-            set
-            {
-                if (value == null)
-                    return;
-                
-                dynamoConvertModel.SelectedFromConversion = value;
-            }
-        }
-
-        public DynamoUnits.Unit SelectedToConversion
-        {
-            get { return dynamoConvertModel.SelectedToConversion; }
-            set
-            {
-                if (value == null)
-                    return;
-                
-                dynamoConvertModel.SelectedToConversion = value;
-            }
-        }
-
-        public List<DynamoUnits.Quantity> QuantityConversionSource
-        {
-            get { return dynamoConvertModel.QuantityConversionSource; }
-        }
-
-        public List<DynamoUnits.Unit> SelectedFromConversionSource
-        {
-            get { return dynamoConvertModel.SelectedFromConversionSource; }
-            set
-            {
-                dynamoConvertModel.SelectedFromConversionSource = value;
-            }
-        }
-
-        public List<DynamoUnits.Unit> SelectedToConversionSource
-        {
-            get { return dynamoConvertModel.SelectedToConversionSource; }
-            set
-            {
-                dynamoConvertModel.SelectedToConversionSource = value;
-            }
-        }
-
-        public bool IsSelectionFromBoxEnabled
-        {
-            get { return dynamoConvertModel.IsSelectionFromBoxEnabled; }
-            set
-            {
-                dynamoConvertModel.IsSelectionFromBoxEnabled = value;
-            }
-        }
-
-        public string SelectionFromBoxToolTip
-        {
-            get { return dynamoConvertModel.SelectionFromBoxToolTip; }
-            set
-            {
-                dynamoConvertModel.SelectionFromBoxToolTip = value;
-            }
-        }
-
-        public ForgeConverterViewModel(ForgeDynamoConvert model, NodeView nodeView)
-        {
-            dynamoConvertModel = model;
-            nodeViewModel = nodeView.ViewModel;
-            nodeModel = nodeView.ViewModel.NodeModel;
-            model.PropertyChanged += model_PropertyChanged;
-            ToggleButtonClick = new DelegateCommand(OnToggleButtonClick, CanToggleButton);
-        }
-
-        private void model_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            switch (e.PropertyName)
-            {
-                case "SelectedQuantityConversionSource":
-                    RaisePropertyChanged("SelectedQuantityConversionSource");
-                    break;
-                case "SelectedQuantityConversion":
-                    RaisePropertyChanged("SelectedQuantityConversion");
-                    break;
-                case "SelectedFromConversionSource":
-                    RaisePropertyChanged("SelectedFromConversionSource");
-                    break;
-                case "SelectedToConversionSource":
-                    RaisePropertyChanged("SelectedToConversionSource");
-                    break;
-                case "SelectedFromConversion":
-                    RaisePropertyChanged("SelectedFromConversion");
-                    break;
-                case "SelectedToConversion":
-                    RaisePropertyChanged("SelectedToConversion");
-                    break;
-                case "IsSelectionFromBoxEnabled":
-                    RaisePropertyChanged("IsSelectionFromBoxEnabled");
-                    break;
-                case "SelectionFromBoxToolTip":
-                    RaisePropertyChanged("SelectionFromBoxToolTip");
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Called when Toggle button is clicked.
-        /// Switches the combo box values
-        /// </summary>
-        /// <param name="sender">The sender.</param>
-        /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
-        private void OnToggleButtonClick(object obj)
-        {
-            //var undoRecorder = nodeViewModel.WorkspaceViewModel.Model.UndoRecorder;
-            //WorkspaceModel.RecordModelForModification(nodeModel, undoRecorder);
-            dynamoConvertModel.ToggleDropdownValues();
-            nodeViewModel.WorkspaceViewModel.HasUnsavedChanges = true;
-        }
-
-        private bool CanToggleButton(object obj)
-        {
-            return true;
-        }
-    }
-
-    class ConverterNodeViewCustomization : INodeViewCustomization<ForgeDynamoConvert>
-    {
-        private NodeModel nodeModel;
-        private ForgeDynamoConverterControl converterControl;
-        private NodeViewModel nodeViewModel;
-        private ForgeDynamoConvert convertModel;
-        private ForgeConverterViewModel converterViewModel;
-
-        public void CustomizeView(ForgeDynamoConvert model, NodeView nodeView)
-        {
-            nodeModel = nodeView.ViewModel.NodeModel;
-            nodeViewModel = nodeView.ViewModel;
-            convertModel = model;
-            converterControl = new ForgeDynamoConverterControl(model, nodeView)
-            {
-                DataContext = new ForgeConverterViewModel(model, nodeView),
-            };
-            converterViewModel = converterControl.DataContext as ForgeConverterViewModel;
-            nodeView.inputGrid.Children.Add(converterControl);
-            converterControl.Loaded += converterControl_Loaded;
-            converterControl.SelectConversionQuantity.PreviewMouseUp += SelectConversionQuantity_PreviewMouseUp;
-            converterControl.SelectConversionFrom.PreviewMouseUp += SelectConversionFrom_PreviewMouseUp;
-            converterControl.SelectConversionTo.PreviewMouseUp += SelectConversionTo_MouseLeftButtonDown;
-        }
-
-        private void SelectConversionQuantity_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            nodeViewModel.WorkspaceViewModel.HasUnsavedChanges = true;
-            //var undoRecorder = nodeViewModel.WorkspaceViewModel.Model.UndoRecorder;
-            //WorkspaceModel.RecordModelForModification(nodeModel, undoRecorder);
-        }
-
-        private void SelectConversionFrom_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            nodeViewModel.WorkspaceViewModel.HasUnsavedChanges = true;
-            //var undoRecorder = nodeViewModel.WorkspaceViewModel.Model.UndoRecorder;
-            //WorkspaceModel.RecordModelForModification(nodeModel, undoRecorder);
-        }
-
-        private void SelectConversionTo_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            nodeViewModel.WorkspaceViewModel.HasUnsavedChanges = true;
-            //var undoRecorder = nodeViewModel.WorkspaceViewModel.Model.UndoRecorder;
-            //WorkspaceModel.RecordModelForModification(nodeModel, undoRecorder);
-        }
-
-        private void converterControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-        }
-
-        public void Dispose()
-        {
-            converterControl.SelectConversionQuantity.PreviewMouseUp -= SelectConversionQuantity_PreviewMouseUp;
-            converterControl.SelectConversionFrom.PreviewMouseUp -= SelectConversionFrom_PreviewMouseUp;
-            converterControl.SelectConversionTo.PreviewMouseUp -= SelectConversionTo_MouseLeftButtonDown;
-        }
-    }
-
-    internal class ForgeQuantityConverter : JsonConverter
+    internal class ForgeUnitSymbolConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(DynamoUnits.Quantity);
+            return objectType == typeof(DynamoUnits.UnitSymbol);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             string typedId = System.Convert.ToString(reader.Value, CultureInfo.InvariantCulture);
-            return DynamoUnits.Quantity.ByTypeID(typedId);
+            return DynamoUnits.UnitSymbol.ByTypeID(typedId);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var quantity = (DynamoUnits.Quantity)value;
-            writer.WriteValue(quantity.TypeId);
-        }
-    }
-
-    internal class ForgeUnitConverter : JsonConverter
-    {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(DynamoUnits.Unit);
-        }
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            string typedId = System.Convert.ToString(reader.Value, CultureInfo.InvariantCulture);
-            return DynamoUnits.Unit.ByTypeID(typedId);
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var unit = (DynamoUnits.Unit)value;
-            writer.WriteValue(unit.TypeId);
+            var unitSymbol = (DynamoUnits.UnitSymbol)value;
+            writer.WriteValue(unitSymbol.TypeId);
         }
     }
 
     [NodeName("Units")]
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
+    [NodeDescription("UnitsUIDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("UnitsUISearchTags", typeof(UnitsUI.Properties.Resources))]
     [OutPortTypes("Unit")]
     [IsDesignScriptCompatible]
     public class Units : DSDropDownBase
@@ -1177,6 +691,8 @@ namespace UnitsUI
 
     [NodeName("Quantities")]
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
+    [NodeDescription("QuantitiesUIDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("QuantitiesUISearchTags", typeof(UnitsUI.Properties.Resources))]
     [OutPortTypes("Quantity")]
     [IsDesignScriptCompatible]
     public class Quantities : DSDropDownBase
@@ -1225,13 +741,14 @@ namespace UnitsUI
 
             Items.Add(new DynamoDropDownItem(quantities.Last().getName(), quantities.Last().getTypeId()));
 
-            //Items = Items.OrderBy(x => x.Name).ToObservableCollection();
             return SelectionState.Restore;
         }
     }
 
     [NodeName("Symbols")]
     [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
+    [NodeDescription("SymbolsUIDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("SymbolsUISearchTags", typeof(UnitsUI.Properties.Resources))]
     [OutPortTypes("Symbol")]
     [IsDesignScriptCompatible]
     public class Symbols : DSDropDownBase
@@ -1291,6 +808,286 @@ namespace UnitsUI
             var symbolTxt = symbol.getPrefixOrSuffix() != null ? symbol.getPrefixOrSuffix().getText() : "";
 
             return symbolStr + symbolTxt;
+        }
+    }
+
+    [NodeName("Unit Value Output Dropdown")]
+    [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
+    [NodeDescription("UnitValueOutputDropdownDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("UnitValueOutputDropdownSearchTags", typeof(UnitsUI.Properties.Resources))]
+    [IsDesignScriptCompatible]
+    public class UnitValueOutputDropdown: NodeModel
+    {
+        private DynamoUnits.Unit selectedUnit;
+        private DynamoUnits.UnitSymbol selectedSymbol;
+        private int selectedPrecision;
+        private NumberFormat selectedFormat;
+        private List<DynamoUnits.Unit> allUnits;
+        private List<DynamoUnits.UnitSymbol> allSymbols;
+        private List<int> allPrecisions;
+        private List<bool> allFormats;
+        private string displayValue;
+
+        /// <summary>
+        /// The property storing the node input of type double.
+        /// </summary>
+        public double Value { get; set; }
+       
+        /// <summary>
+        /// The selected 'Unit' from the Units UI dropdown.
+        /// </summary>
+        [JsonProperty("Unit"), JsonConverter(typeof(ForgeUnitConverter))]
+        public DynamoUnits.Unit SelectedUnit
+        {
+            get { return selectedUnit; }
+            set
+            {
+                selectedUnit = value;
+                this.OnNodeModified();
+                RaisePropertyChanged(nameof(SelectedUnit));
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        }
+       /// <summary>
+       /// The selected 'Symbol' from the Symbols UI dropdown.
+       /// </summary>
+        [JsonProperty("UnitSymbol"), JsonConverter(typeof(ForgeUnitSymbolConverter))]
+        public UnitSymbol SelectedSymbol 
+        {
+            get { return selectedSymbol; }
+            set
+            {
+                selectedSymbol = value;
+                this.OnNodeModified();
+                RaisePropertyChanged(nameof(SelectedSymbol));
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        }
+        /// <summary>
+        /// The selected 'Precision' from the Precision UI dropdown. (Precision means the number of decimals essentially).
+        /// </summary>
+        public int SelectedPrecision
+        {
+            get { return selectedPrecision; }
+            set
+            {
+                selectedPrecision = value;
+                this.OnNodeModified();
+                RaisePropertyChanged(nameof(SelectedPrecision));
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        } 
+        /// <summary>
+        /// The selected (number) 'Format' from the Format UI dropdown. The options currently are decimal or fraction.
+        /// </summary>
+        public NumberFormat SelectedFormat
+        {
+            get { return selectedFormat; }
+            set
+            {
+                selectedFormat = value;
+                this.OnNodeModified();
+                RaisePropertyChanged(nameof(SelectedFormat));
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        }
+
+        /// <summary>
+        /// The collection of all available units for the dropdown.
+        /// </summary>
+        [JsonIgnore]
+        public List<DynamoUnits.Unit> AllUnits { get; set; }
+
+        /// <summary>
+        /// The collection of all available symbols for the dropdown.
+        /// </summary>
+        [JsonIgnore]
+        public List<DynamoUnits.UnitSymbol> AllSymbols { get; set; }
+
+        /// <summary>
+        /// The collection of all available precisions for the dropdown.
+        /// </summary>
+        [JsonIgnore]
+        public List<int> AllPrecisions { get; set; }
+
+        /// <summary>
+        /// The collection of all available formats for the dropdown.
+        /// </summary>
+        [JsonIgnore]
+        public List<NumberFormat> AllFormats { get; set; }
+        
+        /// <summary>
+        /// The string output that gets calculated when the dropdown outputs change.
+        /// This gets computed and when the cached value gets updated, the viewmodel updates the output textbox.
+        /// </summary>
+        public string DisplayValue
+        {
+            get
+            {
+                return displayValue;
+            }
+            set
+            {
+                displayValue = value;
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        }
+
+        [JsonConstructor]
+        private UnitValueOutputDropdown(IEnumerable<PortModel> inPorts, IEnumerable<PortModel> outPorts) : base(inPorts, outPorts)
+        {
+            AllUnits = DynamoUnits.Utilities.ConvertUnitsDictionaryToList(DynamoUnits.Utilities.ForgeUnitsEngine.getAllUnits());
+            AllSymbols = DynamoUnits.Utilities.ConvertSymbolDictionaryToList(DynamoUnits.Utilities.ForgeUnitsEngine.getAllSymbols());
+            AllPrecisions = new List<int>()
+            {
+                0, 1, 2, 3, 4, 5
+            };
+            AllFormats = new List<NumberFormat> { NumberFormat.Decimal, NumberFormat.Fraction };
+            ShouldDisplayPreviewCore = false;
+        }
+
+        public UnitValueOutputDropdown()
+        {
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Value), "Tooltip")));
+
+            RegisterAllPorts();
+            AllUnits = DynamoUnits.Utilities.ConvertUnitsDictionaryToList(DynamoUnits.Utilities.ForgeUnitsEngine.getAllUnits());
+            SelectedUnit = AllUnits[1];
+            AllSymbols = DynamoUnits.Utilities.ConvertSymbolDictionaryToList(DynamoUnits.Utilities.ForgeUnitsEngine.getAllSymbols());
+            SelectedSymbol = AllSymbols[3];
+            AllPrecisions = new List<int>()
+            {
+                0, 1, 2, 3, 4, 5
+            };
+            SelectedPrecision = AllPrecisions[0];
+            AllFormats = new List<NumberFormat> { NumberFormat.Decimal, NumberFormat.Fraction };
+            SelectedFormat = AllFormats[0];
+            RaisePropertyChanged(nameof(DisplayValue));
+
+            ArgumentLacing = LacingStrategy.Disabled;
+            ShouldDisplayPreviewCore = false;
+        }
+
+        public override IEnumerable<AssociativeNode> BuildOutputAst(List<AssociativeNode> inputAstNodes)
+        {
+            if (!InPorts[0].IsConnected)
+            {
+                return new[] { AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), AstFactory.BuildNullNode()) };
+            }
+
+
+            var functionNode = AstFactory.BuildFunctionCall(new Func<double, string, string, int, string, string>(DynamoUnits.Utilities.ReturnFormattedString), 
+                new List<AssociativeNode> { inputAstNodes[0], AstFactory.BuildStringNode(SelectedUnit.TypeId),
+                AstFactory.BuildStringNode(SelectedSymbol.TypeId), AstFactory.BuildIntNode(SelectedPrecision), AstFactory.BuildStringNode(SelectedFormat.ToString())});
+            return new[] { AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), functionNode) };
+        }
+    }
+
+    [NodeName("Unit Value Output")]
+    [NodeCategory(BuiltinNodeCategories.CORE_UNITS)]
+    [NodeDescription("UnitValueOutputDescription", typeof(UnitsUI.Properties.Resources))]
+    [NodeSearchTags("UnitValueOutputSearchTags", typeof(UnitsUI.Properties.Resources))]
+    [IsDesignScriptCompatible]
+    public class UnitValueOutput : NodeModel
+    {   
+        /// <summary>
+        /// Property storing the node input of type double.
+        /// </summary>
+        public double Value { get; set; }
+
+        /// <summary>
+        /// Property storing the node input of type unit.
+        /// </summary>
+        [JsonProperty("Unit"), JsonConverter(typeof(ForgeUnitConverter))]
+        public Unit Unit { get; set; }
+
+        /// <summary>
+        /// Property storing the node input of type unit symbol.
+        /// </summary>
+        [JsonProperty("UnitSymbol"), JsonConverter(typeof(ForgeUnitSymbolConverter))]
+        public UnitSymbol Symbol { get; set; }
+
+        /// <summary>
+        /// Property storing the node input of type int/precision.
+        /// </summary>
+        public int Precision { get; set; }
+        /// <summary>
+        /// Property storing the node input of type format.
+        /// </summary>
+        public NumberFormat Format { get; set; }
+
+        private string displayValue;
+        /// <summary>
+        /// Property storing the formatted string resulting from all inputs.
+        /// </summary>
+        public string DisplayValue
+        {
+            get => displayValue;
+            set
+            {
+                displayValue = value;
+                RaisePropertyChanged(nameof(DisplayValue));
+            }
+        }
+
+        protected override void OnBuilt()
+        {
+            base.OnBuilt();
+            VMDataBridge.DataBridge.Instance.RegisterCallback(GUID.ToString(), DataBridgeCallback);
+        }
+
+        private void DataBridgeCallback(object data)
+        {
+            ArrayList inputs = data as ArrayList;
+
+            Value = Convert.ToDouble(inputs[0]);
+            Unit = DynamoUnits.Utilities.CastToUnit(inputs[1]);
+            Symbol = DynamoUnits.Utilities.CastToUnitSymbol(inputs[2]);
+            Precision = Convert.ToInt32(inputs[3]);
+            Format = Utilities.StringToNumberFormat(inputs[4]);
+
+            DisplayValue = DynamoUnits.Utilities.ReturnFormattedString(Value, Unit, Symbol, Precision, Format);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            DataBridge.Instance.UnregisterCallback(GUID.ToString());
+        }
+
+        [JsonConstructor]
+        private UnitValueOutput(IEnumerable<PortModel> inPorts, IEnumerable<PortModel> outPorts) : base(inPorts, outPorts)
+        {
+        }
+
+        public UnitValueOutput()
+        {
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Value), "Tooltip")));
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Unit), "Tooltip")));
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Symbol), "Tooltip")));
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Precision), "Tooltip")));
+            InPorts.Add(new PortModel(PortType.Input, this, new PortData(nameof(Format), "Tooltip")));
+
+            RegisterAllPorts();
+            ArgumentLacing = LacingStrategy.Disabled;
+            ShouldDisplayPreviewCore = false;
+        }
+
+        public override IEnumerable<AssociativeNode> BuildOutputAst(List<AssociativeNode> inputAstNodes)
+        {
+            if (!InPorts[0].IsConnected || 
+                !InPorts[1].IsConnected ||
+                !InPorts[2].IsConnected ||
+                !InPorts[3].IsConnected ||
+                !InPorts[4].IsConnected)
+            {
+                return new[] { AstFactory.BuildAssignment(GetAstIdentifierForOutputIndex(0), AstFactory.BuildNullNode()) };
+            }
+
+            return new[]{
+                AstFactory.BuildAssignment(
+                    AstFactory.BuildIdentifier(AstIdentifierBase),
+                    VMDataBridge.DataBridge.GenerateBridgeDataAst(GUID.ToString(), AstFactory.BuildExprList(inputAstNodes)))};
         }
     }
 }

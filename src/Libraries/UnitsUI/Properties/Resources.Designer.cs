@@ -88,6 +88,24 @@ namespace UnitsUI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert Between Many Units.
+        /// </summary>
+        internal static string ConvertUnitsDescription {
+            get {
+                return ResourceManager.GetString("ConvertUnitsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ConvertUnitsSearchTags {
+            get {
+                return ResourceManager.GetString("ConvertUnitsSearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit....
         /// </summary>
         internal static string EditHeader {
@@ -124,6 +142,78 @@ namespace UnitsUI.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converts a formatted measurement into the equivalent measurement in a differen unit..
+        /// </summary>
+        internal static string ParseUnitInputDescription {
+            get {
+                return ResourceManager.GetString("ParseUnitInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ParseUnitInputSearchTags {
+            get {
+                return ResourceManager.GetString("ParseUnitInputSearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string QuantitiesUIDescription {
+            get {
+                return ResourceManager.GetString("QuantitiesUIDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string QuantitiesUISearchTags {
+            get {
+                return ResourceManager.GetString("QuantitiesUISearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SymbolsUIDescription {
+            get {
+                return ResourceManager.GetString("SymbolsUIDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SymbolsUISearchTags {
+            get {
+                return ResourceManager.GetString("SymbolsUISearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string UnitsUIDescription {
+            get {
+                return ResourceManager.GetString("UnitsUIDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string UnitsUISearchTags {
+            get {
+                return ResourceManager.GetString("UnitsUISearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select a unit of measurement..
         /// </summary>
         internal static string UnitTypesDescription {
@@ -138,6 +228,96 @@ namespace UnitsUI.Properties {
         internal static string UnitTypesSearchTags {
             get {
                 return ResourceManager.GetString("UnitTypesSearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format.
+        /// </summary>
+        internal static string UnitValueOutputCustomizationFormat {
+            get {
+                return ResourceManager.GetString("UnitValueOutputCustomizationFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Precision.
+        /// </summary>
+        internal static string UnitValueOutputCustomizationPrecision {
+            get {
+                return ResourceManager.GetString("UnitValueOutputCustomizationPrecision", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol.
+        /// </summary>
+        internal static string UnitValueOutputCustomizationSymbol {
+            get {
+                return ResourceManager.GetString("UnitValueOutputCustomizationSymbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit.
+        /// </summary>
+        internal static string UnitValueOutputCustomizationUnit {
+            get {
+                return ResourceManager.GetString("UnitValueOutputCustomizationUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A custom formatted display of a unit value..
+        /// </summary>
+        internal static string UnitValueOutputDescription {
+            get {
+                return ResourceManager.GetString("UnitValueOutputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A custom formatted display of a unit value..
+        /// </summary>
+        internal static string UnitValueOutputDropdownDescription {
+            get {
+                return ResourceManager.GetString("UnitValueOutputDropdownDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output;Formatted.
+        /// </summary>
+        internal static string UnitValueOutputDropdownSearchTags {
+            get {
+                return ResourceManager.GetString("UnitValueOutputDropdownSearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specify formatting from dropdown options..
+        /// </summary>
+        internal static string UnitValueOutputDropdownTooltip {
+            get {
+                return ResourceManager.GetString("UnitValueOutputDropdownTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Output;Formatted.
+        /// </summary>
+        internal static string UnitValueOutputSearchTags {
+            get {
+                return ResourceManager.GetString("UnitValueOutputSearchTags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wire up the formatting parameters to obstain the desired format..
+        /// </summary>
+        internal static string UnitValueOutputTooltip {
+            get {
+                return ResourceManager.GetString("UnitValueOutputTooltip", resourceCulture);
             }
         }
         
