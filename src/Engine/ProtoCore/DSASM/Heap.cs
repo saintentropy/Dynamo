@@ -431,7 +431,7 @@ namespace ProtoCore.DSASM
                 if (isDuringGCCriticalAsyncCycle && isValidHeapIndex)
                 {
                     var he = heapElements[index];
-                    Validity.Assert(he != null, $"Heap element found at index {index} during AllocateStringInternal cannot be null");
+                    Validity.Assert(he != null, "Heap element found during AllocateStringInternal cannot be null");
 
                     // If heap element is marked as white then it is either not processed by Propagate step yet or processed and found as garbage.
                     // If the sweepSet does not contain the heap element's index then there is no need to mark it black (since cleanup will not even be tried)
