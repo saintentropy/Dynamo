@@ -682,7 +682,7 @@ namespace ProtoCore.DSASM
                 StackValue value = ptrs.Dequeue();
                 int rawPtr = (int)value.RawData;
                 var hp = heapElements[rawPtr];
-                Validity.Assert(hp != null, $"Heap element found at index {rawPtr} during RecursiveMark cannot be null");
+                Validity.Assert(hp != null, "Heap element found during RecursiveMark cannot be null");
 
                 if (hp.Mark == GCMark.Black)
                     continue;
@@ -777,7 +777,7 @@ namespace ProtoCore.DSASM
             foreach (var ptr in sweepSet)
             {
                 var hp = heapElements[ptr];
-                Validity.Assert(hp != null, $"Heap element found at index {ptr} during GC sweep cannot be null.");
+                Validity.Assert(hp != null, "Heap element found during GC sweep cannot be null.");
 
                 if (hp.Mark != GCMark.White)
                     continue;
