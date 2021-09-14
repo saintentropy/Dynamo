@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Dynamo.Configuration;
 using Dynamo.Core;
+using Dynamo.Graph;
 using Dynamo.Graph.Nodes;
 using Dynamo.Graph.Notes;
 using Dynamo.Graph.Presets;
@@ -38,6 +39,7 @@ using Dynamo.Wpf;
 using Dynamo.Wpf.Authentication;
 using Dynamo.Wpf.Controls;
 using Dynamo.Wpf.Extensions;
+using Dynamo.Wpf.UI.GuidedTour;
 using Dynamo.Wpf.Utilities;
 using Dynamo.Wpf.ViewModels.Core;
 using Dynamo.Wpf.Views;
@@ -47,6 +49,7 @@ using Dynamo.Wpf.Views.PackageManager;
 using Dynamo.Wpf.Windows;
 using HelixToolkit.Wpf.SharpDX;
 using ResourceNames = Dynamo.Wpf.Interfaces.ResourceNames;
+using Res = Dynamo.Wpf.Properties.Resources;
 using String = System.String;
 
 namespace Dynamo.Controls
@@ -61,8 +64,8 @@ namespace Dynamo.Controls
         private const int navigationInterval = 100;
         // This is used to determine whether ESC key is being held down
         private bool IsEscKeyPressed = false;
-
-        private readonly NodeViewCustomizationLibrary nodeViewCustomizationLibrary;
+        // internal for testing.
+        internal readonly NodeViewCustomizationLibrary nodeViewCustomizationLibrary;
         private DynamoViewModel dynamoViewModel;
         private readonly Stopwatch _timer;
         private StartPageViewModel startPage;
@@ -88,6 +91,8 @@ namespace Dynamo.Controls
         internal Dictionary<string, ExtensionWindow> ExtensionWindows { get; set; } = new Dictionary<string, ExtensionWindow>();
         internal ViewExtensionManager viewExtensionManager;
         internal Watch3DView BackgroundPreview { get; private set; }
+
+        internal GuidesManager mainGuideManager;
 
         /// <summary>
         /// Constructor
@@ -189,17 +194,6 @@ namespace Dynamo.Controls
                 {
                     Log(ext.Name + ": " + exc.Message);
                 }
-            }
-
-            // Sets the visibility of the preferences option in the Dynamo menu depending on the debug mode being enabled
-            // This will be deleted once the option goes into production
-            if (Dynamo.Configuration.DebugModes.IsEnabled("DynamoPreferencesMenuDebugMode"))
-            {
-                preferencesOption.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                preferencesOption.Visibility = Visibility.Collapsed;
             }
 
             // when an extension is added if dynamoView is loaded, call loaded on
@@ -596,9 +590,12 @@ namespace Dynamo.Controls
         private void OnRequestPaste()
         {
             var clipBoard = dynamoViewModel.Model.ClipBoard;
-            var locatableModels = clipBoard.Where(item => item is NoteModel || item is NodeModel);
 
-            var modelBounds = locatableModels.Select(lm =>
+            var locatableModels = clipBoard.Where(item => item is NoteModel || item is NodeModel);
+            var modelsExcludingConnectorPins = locatableModels.Where(model => !(model is ConnectorPinModel));
+            if(modelsExcludingConnectorPins is null || modelsExcludingConnectorPins.Count()<1) { return; }
+
+            var modelBounds = modelsExcludingConnectorPins.Select(lm =>
                 new Rect { X = lm.X, Y = lm.Y, Height = lm.Height, Width = lm.Width });
 
             // Find workspace view.
@@ -626,7 +623,7 @@ namespace Dynamo.Controls
 
             // All nodes are inside of workspace and visible for user.
             // Order them by CenterX and CenterY.
-            var orderedItems = locatableModels.OrderBy(item => item.CenterX + item.CenterY);
+            var orderedItems = modelsExcludingConnectorPins.OrderBy(item => item.CenterX + item.CenterY);
 
             // Search for the rightmost item. It's item with the biggest X, Y coordinates of center.
             var rightMostItem = orderedItems.Last();
@@ -652,8 +649,8 @@ namespace Dynamo.Controls
                 return;
             }
 
-            var x = shiftX + locatableModels.Min(m => m.X);
-            var y = shiftY + locatableModels.Min(m => m.Y);
+            var x = shiftX + modelsExcludingConnectorPins.Min(m => m.X);
+            var y = shiftY + modelsExcludingConnectorPins.Min(m => m.Y);
 
             // All copied nodes are inside of workspace.
             // Paste them with little offset.           
@@ -740,12 +737,20 @@ namespace Dynamo.Controls
         {
             dynamoViewModel.Model.PreferenceSettings.WindowX = Left;
             dynamoViewModel.Model.PreferenceSettings.WindowY = Top;
+
+            //When the Dynamo window is moved to another place we need to update the Steps location
+            if(mainGuideManager != null)
+                mainGuideManager.UpdateGuideStepsLocation();
         }
 
         private void DynamoView_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             dynamoViewModel.Model.PreferenceSettings.WindowW = e.NewSize.Width;
             dynamoViewModel.Model.PreferenceSettings.WindowH = e.NewSize.Height;
+
+            //When the Dynamo window size is changed then we need to update the Steps location
+            if (mainGuideManager != null)
+                mainGuideManager.UpdateGuideStepsLocation();
         }
 
         private void InitializeLogin()
@@ -940,9 +945,7 @@ namespace Dynamo.Controls
             #region Package manager
 
             dynamoViewModel.RequestPackagePublishDialog += DynamoViewModelRequestRequestPackageManagerPublish;
-            dynamoViewModel.RequestManagePackagesDialog += DynamoViewModelRequestShowInstalledPackages;
             dynamoViewModel.RequestPackageManagerSearchDialog += DynamoViewModelRequestShowPackageManagerSearch;
-            dynamoViewModel.RequestPackagePathsDialog += DynamoViewModelRequestPackagePaths;
 
             #endregion
 
@@ -1163,43 +1166,6 @@ namespace Dynamo.Controls
 
             _searchPkgsView.Focus();
             _pkgSearchVM.RefreshAndSearchAsync();
-        }
-
-        private void DynamoViewModelRequestPackagePaths(object sender, EventArgs e)
-        {
-            var loadPackagesParams = new LoadPackageParams
-            {
-                Preferences = dynamoViewModel.PreferenceSettings,
-                PathManager = dynamoViewModel.Model.PathManager,
-            };
-            var customNodeManager = dynamoViewModel.Model.CustomNodeManager;
-            var packageLoader = dynamoViewModel.Model.GetPackageManagerExtension().PackageLoader;
-            var viewModel = new PackagePathViewModel(packageLoader, loadPackagesParams, customNodeManager);
-            var view = new PackagePathView(viewModel) { Owner = this };
-            view.ShowDialog();
-        }
-
-        private InstalledPackagesView _installedPkgsView;
-
-        private void DynamoViewModelRequestShowInstalledPackages(object s, EventArgs e)
-        {
-            var cmd = Analytics.TrackCommandEvent("ManagePackage");
-            if (_installedPkgsView == null)
-            {
-                var pmExtension = dynamoViewModel.Model.GetPackageManagerExtension();
-                _installedPkgsView = new InstalledPackagesView(new InstalledPackagesViewModel(dynamoViewModel,
-                    pmExtension.PackageLoader))
-                {
-                    Owner = this,
-                    WindowStartupLocation = WindowStartupLocation.CenterOwner
-                };
-
-                _installedPkgsView.Closed += (sender, args) => { _installedPkgsView = null; cmd.Dispose(); };
-                _installedPkgsView.Show();
-
-                if (_installedPkgsView.IsLoaded && IsLoaded) _installedPkgsView.Owner = this;
-            }
-            _installedPkgsView.Focus();
         }
 
         private void ClipBoard_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -1557,9 +1523,7 @@ namespace Dynamo.Controls
 
             //PACKAGE MANAGER
             dynamoViewModel.RequestPackagePublishDialog -= DynamoViewModelRequestRequestPackageManagerPublish;
-            dynamoViewModel.RequestManagePackagesDialog -= DynamoViewModelRequestShowInstalledPackages;
             dynamoViewModel.RequestPackageManagerSearchDialog -= DynamoViewModelRequestShowPackageManagerSearch;
-            dynamoViewModel.RequestPackagePathsDialog -= DynamoViewModelRequestPackagePaths;
 
             //FUNCTION NAME PROMPT
             dynamoViewModel.Model.RequestsFunctionNamePrompt -= DynamoViewModelRequestsFunctionNamePrompt;
@@ -1834,7 +1798,7 @@ namespace Dynamo.Controls
 
         private void OnPreferencesWindowClick(object sender, RoutedEventArgs e)
         {
-            var preferencesWindow = new PreferencesView(dynamoViewModel);
+            var preferencesWindow = new PreferencesView(this);
             preferencesWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             preferencesWindow.ShowDialog();
         }
@@ -2372,6 +2336,35 @@ namespace Dynamo.Controls
             {
                 HidePopupWhenWindowDeactivated();
             }
+        }
+
+        private void GetStartedMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ShowGetStartedGuidedTour();
+        }
+
+        /// <summary>
+        /// This method probably will be modified or deleted in the future when the GuideManager and Guide class are created
+        /// For now will be used just for testing/demo purposes since the popups will be created probably in the Guide class.
+        /// </summary>
+        private void ShowGetStartedGuidedTour()
+        {
+            //We pass the root UIElement to the GuidesManager so we can found other child UIElements
+            try
+            {
+                mainGuideManager = new GuidesManager(_this, dynamoViewModel);
+                mainGuideManager.LaunchTour(Res.GetStartedGuide);
+            }
+            catch (Exception)
+            {
+                sidebarGrid.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void RightExtensionSidebar_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            //Setting the width of right extension after resize to
+            extensionsColumnWidth = RightExtensionsViewColumn.Width;
         }
 
         public void Dispose()

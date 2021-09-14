@@ -5,7 +5,7 @@
       "iconUrl": "",
       "elementType": "section",
       "showHeader": false,
-      "include": [ ],
+      "include": [],
       "childElements": [
         {
           "text": "List",
@@ -1527,7 +1527,7 @@
           "path": "dyf://"
         }
       ],
-      "childElements": [ ]
+      "childElements": []
     }
   ]
 }

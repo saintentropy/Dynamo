@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using Dynamo.Configuration;
 using Dynamo.Core;
 using Dynamo.Graph.Nodes.CustomNodes;
 using Dynamo.Graph.Workspaces;
@@ -497,18 +498,19 @@ namespace Dynamo.ViewModels
             var pmExt = DynamoViewModel.Model.GetPackageManagerExtension();
             if (result == MessageBoxResult.OK)
             {
+                System.Diagnostics.Debug.Assert(package.full_dependency_ids.Count == package.full_dependency_versions.Count);
                 // get all of the dependency version headers
                 var dependencyVersionHeaders = package.full_dependency_ids.Select((dep, i) =>
                 {
+                    var depVersion = package.full_dependency_versions[i];
                     try
                     {
-                        var depVersion = package.full_dependency_versions[i];
                         return Model.GetPackageVersionHeader(dep._id, depVersion);
                     }
                     catch
                     {
                         MessageBoxService.Show(
-                            String.Format(Resources.MessageFailedToDownloadPackageVersion, dep._id),
+                            String.Format(Resources.MessageFailedToDownloadPackageVersion, depVersion, dep._id),
                             Resources.PackageDownloadErrorMessageBoxTitle,
                             MessageBoxButton.OK, MessageBoxImage.Error);
                         return null;
@@ -526,7 +528,7 @@ namespace Dynamo.ViewModels
                 var uninstallsRequiringRestart = new List<Package>();
                 var uninstallRequiringUserModifications = new List<Package>();
                 var immediateUninstalls = new List<Package>();
-                var stdLibPackages = new List<Package>();
+                var builtinPackages = new List<Package>();
 
                 // if a package is already installed we need to uninstall it, allowing
                 // the user to cancel if they do not want to uninstall the package
@@ -535,9 +537,9 @@ namespace Dynamo.ViewModels
                 {
                     if (localPkg == null) continue;
 
-                    if (localPkg.RootDirectory.Contains(pmExt.PackageLoader.StandardLibraryDirectory))
+                    if (localPkg.BuiltInPackage)
                     {
-                        stdLibPackages.Add(localPkg);
+                        builtinPackages.Add(localPkg);
                         continue;
                     }
 
@@ -556,27 +558,27 @@ namespace Dynamo.ViewModels
                     immediateUninstalls.Add(localPkg);
                 }
 
-                if (stdLibPackages.Any())
-                {// Conflicts with standard library packages
+                if (builtinPackages.Any())
+                {// Conflicts with builtin packages
                     string message = "";
                     if (duplicateLocalPackages.Count() == 1 &&
                         duplicateLocalPackages.First().Name == name)
                     {
                         message = duplicateLocalPackages.First().VersionName == package.version ?
-                                    String.Format(Resources.MessageSamePackageInStdLib,
+                                    String.Format(Resources.MessageSamePackageInBuiltinPackages,
                                     DynamoViewModel.BrandingResourceProvider.ProductName,
-                                    JoinPackageNames(stdLibPackages))
+                                    JoinPackageNames(builtinPackages))
                                     :
-                                    String.Format(Resources.MessageSamePackageDiffVersInStdLib,
+                                    String.Format(Resources.MessageSamePackageDiffVersInBuiltinPackages,
                                     DynamoViewModel.BrandingResourceProvider.ProductName,
-                                    JoinPackageNames(stdLibPackages));
+                                    JoinPackageNames(builtinPackages));
                     } 
                     else 
                     {
-                        message = String.Format(Resources.MessagePackageDepsInStdLib,
+                        message = String.Format(Resources.MessagePackageDepsInBuiltinPackages,
                                                 DynamoViewModel.BrandingResourceProvider.ProductName,
                                                 name + " " + package.version,
-                                                JoinPackageNames(stdLibPackages));
+                                                JoinPackageNames(builtinPackages));
                     }
 
                     MessageBoxService.Show(message,
@@ -685,7 +687,7 @@ namespace Dynamo.ViewModels
 
                 // form header version pairs and download and install all packages
                 dependencyVersionHeaders
-                    .Select((dep, i) => {
+                    .Select((dep) => {
                         return new PackageDownloadHandle()
                         {
                             Id = dep.id,
@@ -753,7 +755,7 @@ namespace Dynamo.ViewModels
                                 MessageBox.Show(String.Format(Resources.MessageFailToUninstallPackage, 
                                     DynamoViewModel.BrandingResourceProvider.ProductName,
                                     packageDownloadHandle.Name),
-                                    Resources.UninstallFailureMessageBoxTitle, 
+                                    Resources.DeleteFailureMessageBoxTitle, 
                                     MessageBoxButton.OK, MessageBoxImage.Error);
                             }
                         }
@@ -779,6 +781,8 @@ namespace Dynamo.ViewModels
             {
                 PackageManagerExtension.PackageLoader.LoadPackages(new List<Package> { dynPkg });
                 packageDownloadHandle.DownloadState = PackageDownloadHandle.State.Installed;
+
+                dynPkg.LoadState.SetAsLoaded();
             }
             else
             {

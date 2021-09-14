@@ -27,6 +27,7 @@ namespace Dynamo.ViewModels
             UngroupAnnotationCommand = new DelegateCommand(UngroupAnnotation,CanUngroupAnnotation);
             UngroupModelCommand = new DelegateCommand(UngroupModel,CanUngroupModel);
             AddModelsToGroupModelCommand = new DelegateCommand(AddModelsToGroup, CanAddModelsToGroup);
+            AddGroupToGroupModelCommand = new DelegateCommand(AddGroupToGroup, CanAddModelsToGroup);
             AddToSelectionCommand = new DelegateCommand(model.AddToSelection, CanAddToSelection);
             ShowNewFunctionDialogCommand = new DelegateCommand(ShowNewFunctionDialogAndMakeFunction, CanShowNewFunctionDialogCommand);
             SaveRecordedCommand = new DelegateCommand(SaveRecordedCommands, CanSaveRecordedCommands);
@@ -59,12 +60,11 @@ namespace Dynamo.ViewModels
             DisplayStartPageCommand = new DelegateCommand(DisplayStartPage, CanDisplayStartPage);
             ShowPackageManagerSearchCommand = new DelegateCommand(ShowPackageManagerSearch, CanShowPackageManagerSearch);
             PublishNewPackageCommand = new DelegateCommand(PackageManagerClientViewModel.PublishNewPackage, PackageManagerClientViewModel.CanPublishNewPackage);
-            ShowInstalledPackagesCommand = new DelegateCommand(ShowInstalledPackages, CanShowInstalledPackages);
-            ManagePackagePathsCommand = new DelegateCommand(ManagePackagePaths, o => true);
+            ShowInstalledPackagesCommand = new DelegateCommand(o => { }, o => true);
+            ManagePackagePathsCommand = new DelegateCommand(o => { }, o => true);
             PublishCurrentWorkspaceCommand = new DelegateCommand(PackageManagerClientViewModel.PublishCurrentWorkspace, PackageManagerClientViewModel.CanPublishCurrentWorkspace);
             PublishSelectedNodesCommand = new DelegateCommand(PackageManagerClientViewModel.PublishSelectedNodes, PackageManagerClientViewModel.CanPublishSelectedNodes);
             PublishCustomNodeCommand = new DelegateCommand<Function>(PackageManagerClientViewModel.PublishCustomNode, PackageManagerClientViewModel.CanPublishCustomNode);
-            ShowHideConnectorsCommand = new DelegateCommand(ShowConnectors, CanShowConnectors);
             SelectNeighborsCommand = new DelegateCommand(SelectNeighbors, CanSelectNeighbors);
             ClearLogCommand = new DelegateCommand(ClearLog, CanClearLog);
             PanCommand = new DelegateCommand(Pan, CanPan);
@@ -93,6 +93,7 @@ namespace Dynamo.ViewModels
         public DelegateCommand UngroupAnnotationCommand { get; set; }
         public DelegateCommand UngroupModelCommand { get; set; }
         public DelegateCommand AddModelsToGroupModelCommand { get; set; }
+        public DelegateCommand AddGroupToGroupModelCommand { get; set; }
         public DelegateCommand UndoCommand { get; set; }
         public DelegateCommand RedoCommand { get; set; }
         public DelegateCommand CopyCommand { get; set; }
@@ -104,7 +105,9 @@ namespace Dynamo.ViewModels
         public DelegateCommand GraphAutoLayoutCommand { get; set; }
         public DelegateCommand GoHomeCommand { get; set; }
         public DelegateCommand ShowPackageManagerSearchCommand { get; set; }
+        [Obsolete("Do not use. This command will be removed. It does nothing.")]
         public DelegateCommand ShowInstalledPackagesCommand { get; set; }
+        [Obsolete("Do not use. This command will be removed. It does nothing.")]
         public DelegateCommand ManagePackagePathsCommand { get; set; }
         public DelegateCommand HomeCommand { get; set; }
         public DelegateCommand ExitCommand { get; set; }
@@ -134,7 +137,6 @@ namespace Dynamo.ViewModels
         public DelegateCommand GoToDictionaryCommand { get; set; }
         public DelegateCommand GoToSourceCodeCommand { get; set; }
         public DelegateCommand DisplayStartPageCommand { get; set; }
-        public DelegateCommand ShowHideConnectorsCommand { get; set; }
         public DelegateCommand SelectNeighborsCommand { get; set; }
         public DelegateCommand ClearLogCommand { get; set; }
         public DelegateCommand SubmitCommand { get; set; }
