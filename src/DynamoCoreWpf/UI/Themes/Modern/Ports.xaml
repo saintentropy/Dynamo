@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:command="clr-namespace:GalaSoft.MvvmLight.Command;assembly=GalaSoft.MvvmLight.Platform"
                     xmlns:configuration="clr-namespace:Dynamo.Configuration;assembly=DynamoCore"
-                    xmlns:controls="clr-namespace:Dynamo.Views;assembly=DynamoCore"
+                    xmlns:controls="clr-namespace:Dynamo.Controls;assembly=DynamoCoreWpf"
                     xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
                     xmlns:dynui="clr-namespace:Dynamo.UI.Controls;assembly=DynamoCoreWpf"
                     xmlns:fa="http://schemas.fontawesome.io/icons/"
@@ -30,11 +30,59 @@
 
     <!--  Add your resources here  -->
 
-    <ResourceDictionary.MergedDictionaries>
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoColorsAndBrushesDictionaryUri}" />
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoModernDictionaryUri}" />
-    </ResourceDictionary.MergedDictionaries>
+    <controls:SnapRegionMarginConverter x:Key="SnapRegionMarginConverter" />
+    <controls:PortToAttachmentConverter x:Key="PortToAttachmentConverter" />
+    <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
+    <SolidColorBrush x:Key="PreferencesWindowButtonMouseOverFontColor" Color="#CDCBCB" />
+    <SolidColorBrush x:Key="PrimaryCharcoal200Brush" Color="#9BD5EF" />
+    <SolidColorBrush x:Key="PortUsingDefaultValueMarkerColor" Color="#6AC0E7" />
+    <SolidColorBrush x:Key="DarkGreyBrush" Color="#4A4A4A" />
+    <SolidColorBrush x:Key="PortUseLevelsCheckBoxColor" Color="#808080" />
+    <Style x:Key="PopupButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="#4D4D4D" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Margin" Value="8" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Border Name="border"
+                                Padding="4"
+                                Background="Transparent"
+                                BorderBrush="Transparent"
+                                BorderThickness="0"/>
+                        <ContentPresenter Name="contentpresenter"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            TextBlock.Foreground="#4D4D4D"
+                                            TextBlock.FontSize="13px" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Background" Value="Transparent" />
+                            <Setter TargetName="contentpresenter" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="#99E0FF" />
+                            <Setter TargetName="border" Property="Opacity" Value="0.3" />
+                            <Setter Property="Foreground" Value="{StaticResource PreferencesWindowButtonMouseOverFontColor}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border"
+                                    Property="Background"
+                                    Value="#99E0FF" />
+                            <Setter TargetName="border"
+                                    Property="Opacity"
+                                    Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <DataTemplate DataType="{x:Type viewModels:PortViewModel}">
         <!--  Grid that contains the entire port  -->
         <Grid Name="mainGrid" HorizontalAlignment="Stretch">
@@ -43,7 +91,7 @@
                 This logic is defined in the ViewModel. None of the elements in this Border are interactive, so they
                 can live in the lowest level of Z-Order
             -->
-            <Border x:Name="mainBorder" UseLayoutRounding="true">
+            <Border x:Name="mainBorder" UseLayoutRounding="true" >
                 <!--  DockPanel that positions the visible port name and the UseLevelArrow  -->
                 <DockPanel x:Name="mainDockPanel" FlowDirection="LeftToRight">
                     <Grid Name="portNameGrid"
@@ -76,7 +124,6 @@
                                    Width="Auto"
                                    HorizontalAlignment="Left"
                                    VerticalAlignment="Center"
-                                   FontFamily="{StaticResource ArtifaktElementRegular}"
                                    FontSize="17px"
                                    FontWeight="Medium"
                                    Foreground="#DCDCDC"
@@ -123,7 +170,7 @@
                     </Grid>
                     <Grid Width="50"
                           DockPanel.Dock="Left"
-                          Visibility="{Binding Path=UseLevels, Converter={StaticResource BooleanToVisibilityCollapsedConverter}, FallbackValue=Collapsed}" />
+                          Visibility="{Binding Path=UseLevels, Converter={StaticResource VisibleIfTrueConverter}, FallbackValue=Collapsed}" />
                     <Grid Name="useLevelArrowGrid"
                           HorizontalAlignment="Right"
                           Visibility="{Binding Path=UseLevelVisibility}">
@@ -139,8 +186,7 @@
                                FontSize="16px"
                                FontWeight="Medium"
                                Foreground="{StaticResource PrimaryCharcoal200Brush}"
-                               IsHitTestVisible="False"
-                               Style="{StaticResource SZoomFadeLabel}" />
+                               IsHitTestVisible="False"/>
                         <Grid.Style>
                             <Style>
                                 <Setter Property="Grid.Height" Value="{Binding Path=Height}" />
@@ -156,6 +202,7 @@
                     </Grid>
                 </DockPanel>
                 <!--  Inputs and outputs have different corner radius and border conditions  -->
+                <Border.Style></Border.Style>
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background" Value="{Binding PortBackgroundColor, UpdateSourceTrigger=PropertyChanged}" />
@@ -202,87 +249,12 @@
                 </Border.Style>
             </Border>
             <!--  Blue marker that appears to the left side of an input port, indicating it's using its default value.  -->
-            <Rectangle x:Name="usingDefaultValueMarker"
-                       Width="6px"
-                       Height="29px"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Center"
-                       Fill="{StaticResource PortUsingDefaultValueMarkerColor}"
-                       Visibility="{Binding UsingDefaultValueMarkerVisibile, Converter={StaticResource BooleanToVisibilityConverter}}" />
             <!--
                 Interactive overlay for the port, highlights the port on MouseOver and
                 contains MouseClick event handling and ToolTip logic. Since the overlay is interactive, it needs to
                 live higher up in the Z-Order than the non-interactive elements in the mainBorder for MouseOver and
                 MouseClick events to fire.
             -->
-            <Border x:Name="mainBorderHighlightOverlay"
-                    BorderBrush="Transparent"
-                    Opacity="0.2"
-                    UseLayoutRounding="true">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Height" Value="29px" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=PortType}" Value="{x:Static nodes:PortType.Input}">
-                                <Setter Property="CornerRadius" Value="0,11,11,0" />
-                                <Setter Property="BorderThickness" Value="0,2,2,2" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Path=PortType}" Value="{x:Static nodes:PortType.Output}">
-                                <Setter Property="CornerRadius" Value="11,0,0,11" />
-                                <Setter Property="BorderThickness" Value="2,2,0,2" />
-                            </DataTrigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="White" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="False">
-                                <Setter Property="Background" Value="Transparent" />
-                            </Trigger>
-                            <DataTrigger Binding="{Binding Path=IsPortCondensed}" Value="True">
-                                <Setter Property="CornerRadius" Value="0" />
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="Height" Value="{Binding Source={x:Static configuration:Configurations.CodeBlockOutputPortHeightInPixels}}" />
-                                <Setter Property="Margin" Value="0" />
-                                <Setter Property="Width" Value="16px" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <interactivity:Interaction.Triggers>
-                    <!--  Bind Connect command to left click  -->
-                    <views:HandlingEventTrigger EventName="MouseLeftButtonDown">
-                        <interactivity:InvokeCommandAction Command="{Binding Path=ConnectCommand}" />
-                    </views:HandlingEventTrigger>
-                </interactivity:Interaction.Triggers>
-
-                <Border.ToolTip>
-                    <dynui:DynamoToolTip AttachmentSide="{Binding Path=PortType, Converter={StaticResource PortToAttachmentConverter}}" Style="{DynamicResource ResourceKey=SLightToolTip}">
-                        <Grid>
-                            <TextBlock MaxWidth="320"
-                                       Text="{Binding Path=ToolTipContent}"
-                                       TextWrapping="Wrap" />
-                        </Grid>
-                    </dynui:DynamoToolTip>
-                </Border.ToolTip>
-
-                <!--  Bind NodeAutoComplete to double left click  -->
-                <Border.InputBindings>
-                    <MouseBinding Command="{Binding Path=NodeAutoCompleteCommand}" MouseAction="LeftDoubleClick" />
-                </Border.InputBindings>
-
-                <!--
-                    We could have changed the Grid opacity directly here but didn't
-                    The reason is that if the opacity of the Grid is modified, the
-                    internal text box will also appear semi-transparent. This is why an
-                    intermediary Border is required just for mouse-over highlighting.
-                -->
-
-                <!--
-                    Port is contained in another rectangle to ensure that hit area is extended outside the grid.
-                    Minimum Width is specified on the rectangle, rather than the grid. Otherwise, if the port's width is less than
-                    the grid's width, the outside rectangle is shrinked to fit the grid. Port snapping cannot occur in that case
-                    as no mouse events are generated.This happens only for codeblock node.
-                -->
-            </Border>
             <!--
                 Contains the interactive elements which need to have the highest-level of Z-Order so that they
                 may be interacted with *above* the mainBorderHighlightOverlay layer.
@@ -334,13 +306,11 @@
                            HorizontalAlignment="Left"
                            VerticalAlignment="Center"
                            DockPanel.Dock="Left"
-                           FontFamily="{StaticResource ArtifaktElementRegular}"
                            FontSize="17px"
                            FontWeight="Medium"
                            Foreground="Transparent"
                            IsHitTestVisible="False"
                            Opacity="0.4"
-                           Style="{StaticResource SZoomFadeText}"
                            Text="{Binding Path=PortName}" />
                 <dynui:UseLevelSpinner x:Name="useLevelControl"
                                        Width="50"
@@ -361,7 +331,6 @@
                         <Grid.Resources>
                             <ResourceDictionary>
                                 <Style TargetType="CheckBox">
-                                    <Setter Property="FontFamily" Value="{StaticResource ArtifaktElementRegular}" />
                                     <Setter Property="Foreground" Value="{StaticResource DarkGreyBrush}" />
                                     <Setter Property="Margin" Value="0" />
                                     <Setter Property="FontSize" Value="14px" />
@@ -448,7 +417,7 @@
                                           CommandParameter="{Binding Path=IsChecked, RelativeSource={RelativeSource Self}}"
                                           Content="{x:Static p:Resources.UseLevelPopupMenuItem}"
                                           IsChecked="{Binding Path=UseLevels, Mode=OneWay}"
-                                          Visibility="{Binding UseLevelCheckBoxVisibility, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" />
+                                          Visibility="{Binding UseLevelCheckBoxVisibility, Converter={StaticResource VisibleIfTrueConverter}}" />
                                 <CheckBox Margin="0,3,5,3"
                                           HorizontalAlignment="Left"
                                           Command="{Binding Path=KeepListStructureCommand}"
@@ -456,19 +425,19 @@
                                           Content="{x:Static p:Resources.UseLevelKeepListStructurePopupMenuItem}"
                                           IsChecked="{Binding Path=ShouldKeepListStructure, Mode=OneWay}"
                                           IsEnabled="{Binding ElementName=UseLevel, Path=IsChecked}"
-                                          Visibility="{Binding UseLevelCheckBoxVisibility, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" />
+                                          Visibility="{Binding UseLevelCheckBoxVisibility, Converter={StaticResource VisibleIfTrueConverter}}" />
                                 <CheckBox Margin="0,3,5,3"
                                           HorizontalAlignment="Left"
                                           Content="{x:Static p:Resources.PortViewContextMenuUserDefaultValue}"
                                           IsChecked="{Binding Path=UsingDefaultValue, Mode=TwoWay}"
-                                          Visibility="{Binding UseDefaultValueCheckBoxVisibility, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" />
+                                          Visibility="{Binding UseDefaultValueCheckBoxVisibility, Converter={StaticResource VisibleIfTrueConverter}}" />
                                 <Button Margin="0,3"
                                         HorizontalAlignment="Left"
                                         Command="{Binding Path=BreakConnectionsCommand}"
                                         Content="{x:Static p:Resources.BreakConnectionPopupMenuItem}"
                                         IsEnabled="{Binding OutputPortBreakConnectionsButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{StaticResource PopupButtonStyle}"
-                                        Visibility="{Binding OutputPortConnectionsButtonsVisible, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}">
+                                        Visibility="{Binding OutputPortConnectionsButtonsVisible, Converter={StaticResource VisibleIfTrueConverter}}">
                                 </Button>
                                 <Button Margin="0,3"
                                         HorizontalAlignment="Left"
@@ -476,7 +445,7 @@
                                         Content="{Binding ShowHideWiresButtonContent, UpdateSourceTrigger=PropertyChanged}"
                                         IsEnabled="{Binding HideWiresButtonEnabled, UpdateSourceTrigger=PropertyChanged}"
                                         Style="{StaticResource PopupButtonStyle}"
-                                        Visibility="{Binding OutputPortConnectionsButtonsVisible, Converter={StaticResource BooleanToVisibilityCollapsedConverter}}" />
+                                        Visibility="{Binding OutputPortConnectionsButtonsVisible, Converter={StaticResource VisibleIfTrueConverter}}" />
                             </StackPanel>
                         </Border>
                         <Path Grid.Column="1"
