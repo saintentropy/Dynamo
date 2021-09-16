@@ -282,7 +282,7 @@
         </DockPanel>
 
         <!--INPUT PORTS-->  
-        <ItemsControl Name="inputPortControl"
+        <!--<ItemsControl Name="inputPortControl"
                       Grid.Row="2"
                       Grid.Column="0"
                       Margin="0,3,0,0"
@@ -301,10 +301,10 @@
                     </Setter>
                 </Style>
             </ItemsControl.Style>
-        </ItemsControl>
+        </ItemsControl>-->
 
         <!--OUTPUT PORTS-->  
-        <ItemsControl Name="outputPortControl"
+        <!--<ItemsControl Name="outputPortControl"
                       Grid.Row="2"
                       Grid.Column="2"
                       VerticalAlignment="Top"
@@ -322,7 +322,7 @@
                     </Setter>
                 </Style>
             </ItemsControl.Style>
-        </ItemsControl>
+        </ItemsControl>-->
 
 
         <Grid Name="centralGrid"

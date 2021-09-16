@@ -112,7 +112,7 @@ namespace Dynamo.Controls
         {
             Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoColorsAndBrushesDictionary);
             Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoConvertersDictionary);
-            Resources.MergedDictionaries.Add(SharedDictionaryManager.PortsDictionary);
+            //Resources.MergedDictionaries.Add(SharedDictionaryManager.PortsDictionary);
 
             InitializeComponent();
 
