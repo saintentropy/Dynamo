@@ -48,8 +48,8 @@ namespace Dynamo.ViewModels
 
         #region private members
 
-        ObservableCollection<PortViewModel> inPorts = new ObservableCollection<PortViewModel>();
-        ObservableCollection<PortViewModel> outPorts = new ObservableCollection<PortViewModel>();
+        ObservableCollection<InPortViewModel> inPorts = new ObservableCollection<InPortViewModel>();
+        ObservableCollection<OutPortViewModel> outPorts = new ObservableCollection<OutPortViewModel>();
         NodeModel nodeLogic;
         private int zIndex = Configurations.NodeStartZIndex;
         private string astText = string.Empty;
@@ -119,7 +119,7 @@ namespace Dynamo.ViewModels
         }
 
         [JsonIgnore]
-        public ObservableCollection<PortViewModel> InPorts
+        public ObservableCollection<InPortViewModel> InPorts
         {
             get { return inPorts; }
             set
@@ -130,7 +130,7 @@ namespace Dynamo.ViewModels
         }
 
         [JsonIgnore]
-        public ObservableCollection<PortViewModel> OutPorts
+        public ObservableCollection<OutPortViewModel> OutPorts
         {
             get { return outPorts; }
             set
@@ -823,13 +823,13 @@ namespace Dynamo.ViewModels
         {
             foreach (var item in nodeLogic.InPorts)
             {
-                PortViewModel inportViewModel = SubscribePortEvents(item);
+                InPortViewModel inportViewModel = SubscribeInPortEvents(item);
                 InPorts.Add(inportViewModel);
             }
 
             foreach (var item in nodeLogic.OutPorts)
             {
-                PortViewModel outportViewModel = SubscribePortEvents(item);
+                OutPortViewModel outportViewModel = SubscribeOutPortEvents(item);
                 OutPorts.Add(outportViewModel);
             }
         }
@@ -1038,7 +1038,7 @@ namespace Dynamo.ViewModels
                 //create a new port view model
                 foreach (var item in e.NewItems)
                 {
-                    PortViewModel inportViewModel = SubscribePortEvents(item as PortModel);
+                    InPortViewModel inportViewModel = SubscribeInPortEvents(item as PortModel);
                     InPorts.Add(inportViewModel);
                 }
             }
@@ -1048,7 +1048,7 @@ namespace Dynamo.ViewModels
                 //is the one passed in
                 foreach (var item in e.OldItems)
                 {
-                    PortViewModel portToRemove = UnSubscribePortEvents(InPorts.ToList().First(x => x.PortModel == item)); ;
+                    InPortViewModel portToRemove = UnSubscribeInPortEvents(InPorts.ToList().First(x => x.PortModel == item)); ;
                     InPorts.Remove(portToRemove);
                     portToRemove.Dispose();
                 }
@@ -1074,7 +1074,7 @@ namespace Dynamo.ViewModels
                 //create a new port view model
                 foreach (var item in e.NewItems)
                 {
-                    PortViewModel outportViewModel = SubscribePortEvents(item as PortModel);
+                    OutPortViewModel outportViewModel = SubscribeOutPortEvents(item as PortModel);
                     OutPorts.Add(outportViewModel);
                 }
             }
@@ -1084,7 +1084,7 @@ namespace Dynamo.ViewModels
                 //one passed in
                 foreach (var item in e.OldItems)
                 {
-                    PortViewModel portToRemove = UnSubscribePortEvents(OutPorts.ToList().First(x => x.PortModel == item));
+                    OutPortViewModel portToRemove = UnSubscribeOutPortEvents(OutPorts.ToList().First(x => x.PortModel == item));
                     OutPorts.Remove(portToRemove);
                 }
             }
@@ -1113,6 +1113,33 @@ namespace Dynamo.ViewModels
             return portViewModel;
         }
 
+        /// <summary>
+        /// Registers the port events.
+        /// </summary>
+        /// <param name="item">PortModel.</param>
+        /// <returns></returns>
+        private InPortViewModel SubscribeInPortEvents(PortModel item)
+        {
+            InPortViewModel portViewModel = new InPortViewModel(this, item);
+            portViewModel.MouseEnter += OnRectangleMouseEnter;
+            portViewModel.MouseLeave += OnRectangleMouseLeave;
+            portViewModel.MouseLeftButtonDown += OnMouseLeftButtonDown;
+            return portViewModel;
+        }
+
+        /// <summary>
+        /// Registers the port events.
+        /// </summary>
+        /// <param name="item">PortModel.</param>
+        /// <returns></returns>
+        private OutPortViewModel SubscribeOutPortEvents(PortModel item)
+        {
+            OutPortViewModel portViewModel = new OutPortViewModel(this, item);
+            portViewModel.MouseEnter += OnRectangleMouseEnter;
+            portViewModel.MouseLeave += OnRectangleMouseLeave;
+            portViewModel.MouseLeftButtonDown += OnMouseLeftButtonDown;
+            return portViewModel;
+        }
 
         /// <summary>
         /// Unsubscribe port events.
@@ -1127,6 +1154,31 @@ namespace Dynamo.ViewModels
             return item;
         }
 
+        /// <summary>
+        /// Unsubscribe port events.
+        /// </summary>
+        /// <param name="item">The PortViewModel.</param>
+        /// <returns></returns>
+        private OutPortViewModel UnSubscribeOutPortEvents(OutPortViewModel item)
+        {
+            item.MouseEnter -= OnRectangleMouseEnter;
+            item.MouseLeave -= OnRectangleMouseLeave;
+            item.MouseLeftButtonDown -= OnMouseLeftButtonDown;
+            return item;
+        }
+
+        /// <summary>
+        /// Unsubscribe port events.
+        /// </summary>
+        /// <param name="item">The PortViewModel.</param>
+        /// <returns></returns>
+        private InPortViewModel UnSubscribeInPortEvents(InPortViewModel item)
+        {
+            item.MouseEnter -= OnRectangleMouseEnter;
+            item.MouseLeave -= OnRectangleMouseLeave;
+            item.MouseLeftButtonDown -= OnMouseLeftButtonDown;
+            return item;
+        }
 
         /// <summary>
         /// Handles the MouseLeftButtonDown event of the port control.

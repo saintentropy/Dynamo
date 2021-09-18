@@ -687,17 +687,17 @@ namespace Dynamo.ViewModels
 
         private List<PortViewModel> CreateProxyPorts(IEnumerable<PortModel> groupPortModels)
         {
-            var originalPortViewModels = WorkspaceViewModel.Nodes
-                .SelectMany(x => x.InPorts.Concat(x.OutPorts))
-                .Where(x => groupPortModels.Contains(x.PortModel))
-                .ToList();
+            //var originalInPortViewModels = WorkspaceViewModel.Nodes
+            //    .SelectMany(x => x.InPorts.con)
+            //    .Where(x => groupPortModels.Contains(x.PortModel))
+            //    .ToList();
 
             var newPortViewModels = new List<PortViewModel>();
-            for (int i = 0; i < groupPortModels.Count(); i++)
-            {
-                var model = groupPortModels.ElementAt(i);
-                newPortViewModels.Add(originalPortViewModels[i].CreateProxyPortViewModel(model));
-            }
+            //for (int i = 0; i < groupPortModels.Count(); i++)
+            //{
+            //    var model = groupPortModels.ElementAt(i);
+            //    newPortViewModels.Add(originalPortViewModels[i].CreateProxyPortViewModel(model));
+            //}
 
             return newPortViewModels;
         }
