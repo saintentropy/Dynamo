@@ -92,6 +92,12 @@ namespace Dynamo.Wpf.UI.GuidedTour
             {
                 Step firstStep = (from step in GuideSteps where step.Sequence == 0 select step).FirstOrDefault();
                 CurrentStep = firstStep;
+
+                //When the first step of the guide is a tooltip, then it need to have a background and a hole to highlight the element
+                if (firstStep.HostPopupInfo != null && 
+                    firstStep.StepType == Step.StepTypes.TOOLTIP)
+                    SetupBackgroundHole(firstStep);
+
                 firstStep.Show();
             }
         }
@@ -103,7 +109,7 @@ namespace Dynamo.Wpf.UI.GuidedTour
         {
             TotalSteps = GuideSteps.Count;
 
-            SetLibraryViewVisible(false);   
+            SetLibraryViewVisible(false);
 
             SubscribeFlowEvents();
         }
@@ -114,7 +120,7 @@ namespace Dynamo.Wpf.UI.GuidedTour
         /// <param name="visible">This parameter will contain a boolean to define if the library should be visible or not</param>
         private void SetLibraryViewVisible(bool visible)
         {
-            if(LibraryView != null)
+            if (LibraryView != null)
             {
                 if (visible)
                     LibraryView.Visibility = Visibility.Visible;
@@ -165,7 +171,7 @@ namespace Dynamo.Wpf.UI.GuidedTour
 
                     nextStep.Show();
                 }
-            }                        
+            }
         }
 
         /// <summary>
@@ -174,7 +180,7 @@ namespace Dynamo.Wpf.UI.GuidedTour
         /// <param name="step">This parameter represents the step with informations of the element and color of the border</param>
         private void SetupBackgroundHole(Step step)
         {
-            SetupBackgroundHoleSize(step.HostPopupInfo.HostUIElement);
+            SetupBackgroundHoleSize(step.HostPopupInfo);
             SetupBackgroundHoleBorderColor(step.HostPopupInfo.HighlightColor);
         }
 
@@ -186,7 +192,7 @@ namespace Dynamo.Wpf.UI.GuidedTour
         {
             if (string.IsNullOrEmpty(highlightColor))
             {
-                GuideBackgroundElement.HolePath.Stroke = Brushes.Black;
+                GuideBackgroundElement.HolePath.Stroke = Brushes.Transparent;
             }
             else
             {
@@ -200,14 +206,15 @@ namespace Dynamo.Wpf.UI.GuidedTour
         /// This method will update the hole size everytime that the step change
         /// </summary>
         /// <param name="hostElement">Element for size and position reference</param>
-        private void SetupBackgroundHoleSize(UIElement hostElement)
+        private void SetupBackgroundHoleSize(HostControlInfo hostControlInfo)
         {
-            Point relativePoint = hostElement.TransformToAncestor(MainWindow)
+            Point relativePoint = hostControlInfo.HostUIElement.TransformToAncestor(MainWindow)
                               .Transform(new Point(0, 0));
 
-            GuideBackgroundElement.HoleRect = new Rect(relativePoint.X, relativePoint.Y,
-                            hostElement.DesiredSize.Width, hostElement.DesiredSize.Height);
+            var holeWidth = hostControlInfo.HostUIElement.DesiredSize.Width + hostControlInfo.WidthBoxDelta;
+            var holeHeight = hostControlInfo.HostUIElement.DesiredSize.Height + hostControlInfo.HeightBoxDelta;
 
+            GuideBackgroundElement.HoleRect = new Rect(relativePoint.X, relativePoint.Y, holeWidth, holeHeight);
         }
 
         /// <summary>
