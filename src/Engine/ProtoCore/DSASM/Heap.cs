@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using ProtoCore.Exceptions;
 using ProtoCore.Utils;
 
@@ -297,8 +299,8 @@ namespace ProtoCore.DSASM
             Black // Objects that are in use (are not candidates for garbage collection) and have had all their references traced.
         }
 
-        private readonly List<int> freeList = new List<int>();
-        private readonly List<HeapElement> heapElements = new List<HeapElement>();
+        private int index = -1;
+        private readonly ConcurrentDictionary<int, HeapElement> heapElements = new ConcurrentDictionary<int, HeapElement>();
         private HashSet<int> fixedHeapElements = new HashSet<int>(); 
         private readonly StringTable stringTable = new StringTable();
         // The expected lifetime of the sweepSet is start of GC to end of GC
@@ -346,9 +348,9 @@ namespace ProtoCore.DSASM
         {
             try
             {
-                int index = AllocateInternal(values, PrimitiveType.Array);
-                var heapElement = heapElements[index];
-                heapElement.MetaData = new MetaData { type = (int)PrimitiveType.Array };
+                var index_heap = AllocateInternal(values, PrimitiveType.Array);
+                int index = index_heap.Item1;
+                index_heap.Item2.MetaData = new MetaData { type = (int)PrimitiveType.Array };
                 return StackValue.BuildArrayPointer(index);
             }
             catch (OutOfMemoryException)
@@ -365,9 +367,9 @@ namespace ProtoCore.DSASM
         /// <returns></returns>
         private StackValue AllocatePointer(StackValue[] values, MetaData metaData)
         {
-            int index = AllocateInternal(values, PrimitiveType.Pointer);
-            var heapElement = heapElements[index];
-            heapElement.MetaData = metaData;
+            var index_heap = AllocateInternal(values, PrimitiveType.Pointer);
+            int index = index_heap.Item1;
+            index_heap.Item2.MetaData = metaData;
             return StackValue.BuildPointer(index, metaData);
         }
 
@@ -402,9 +404,9 @@ namespace ProtoCore.DSASM
         {
             try
             {
-                int index = AllocateInternal(size, PrimitiveType.Pointer);
-                var hpe = heapElements[index];
-                hpe.MetaData = metadata;
+                var index_heap = AllocateInternal(size, PrimitiveType.Pointer);
+                int index = index_heap.Item1;
+                index_heap.Item2.MetaData = metadata;
                 return StackValue.BuildPointer(index, metadata);
             }
             catch (OutOfMemoryException)
@@ -427,7 +429,7 @@ namespace ProtoCore.DSASM
                 // Any existing heap elements, marked as white, that are in the sweepSet and that are referenced during the sweep cycle will be marked as Black.
                 // This will ensure that no reachable data is mistakenly cleaned up.
                 bool isDuringGCCriticalAsyncCycle = gcState != GCState.Pause;// Between the time the GC takes a snapshot of the stack and heap untill GC cycle is over.
-                bool isValidHeapIndex = index >= 0 && index < heapElements.Count;
+                bool isValidHeapIndex = index >= 0;
                 if (isDuringGCCriticalAsyncCycle && isValidHeapIndex)
                 {
                     var he = heapElements[index];
@@ -445,7 +447,7 @@ namespace ProtoCore.DSASM
             } 
             else 
             {
-                index = AllocateInternal(new StackValue[] {}, PrimitiveType.String);
+                index = AllocateInternal(new StackValue[] {}, PrimitiveType.String).Item1;
                 stringTable.AddString(index, str);
             }
 
@@ -500,7 +502,7 @@ namespace ProtoCore.DSASM
         public string GetString(DSString dsString)
         {
             int index = dsString.Pointer.StringPointer;
-            Validity.Assert(index >= 0 && index < heapElements.Count);
+            Validity.Assert(index >= 0);
 
             string s;
             if (stringTable.TryGetString(index, out s))
@@ -526,7 +528,7 @@ namespace ProtoCore.DSASM
                 index = pointer.StringPointer;
             }
 
-            if (index >= 0 && index < heapElements.Count)
+            if (index >= 0)
             {
                 heapElement = heapElements[index];
             }
@@ -536,29 +538,22 @@ namespace ProtoCore.DSASM
         public void Free()
         {
             heapElements.Clear();
-            freeList.Clear();
+            index = -1;
         }
 
-        private int AddHeapElement(HeapElement hpe)
+        private int AddHeapElement(ref HeapElement hpe)
         {
             hpe.Mark = GCMark.White;
             ReportAllocation(hpe.MemorySize);
 
-            int index;
-            if (TryFindFreeIndex(out index))
-            {
-                heapElements[index] = hpe;
-            }
-            else
-            {
-                heapElements.Add(hpe);
-                index = heapElements.Count - 1;
-            }
+            var currentIndex = Interlocked.Increment(ref index);
 
-            return index;
+            heapElements.TryAdd(currentIndex, hpe);
+
+            return currentIndex;
         }
 
-        private int AllocateInternal(int size, PrimitiveType type)
+        private (int, HeapElement) AllocateInternal(int size, PrimitiveType type)
         {
             HeapElement hpe = null;
 
@@ -580,10 +575,10 @@ namespace ProtoCore.DSASM
                     throw new ArgumentException("type");
             }
 
-            return AddHeapElement(hpe);
+            return (AddHeapElement(ref hpe), hpe);
         }
 
-        private int AllocateInternal(StackValue[] values, PrimitiveType type)
+        private (int,HeapElement) AllocateInternal(StackValue[] values, PrimitiveType type)
         {
             HeapElement hpe = null;
 
@@ -605,23 +600,7 @@ namespace ProtoCore.DSASM
                     throw new ArgumentException("type");
             }
 
-            return AddHeapElement(hpe);
-        }
-
-        private bool TryFindFreeIndex(out int index)
-        {
-            int freeItemCount = freeList.Count;
-            if (freeItemCount > 0)
-            {
-                index = freeList[freeItemCount - 1];
-                freeList.RemoveAt(freeItemCount - 1);
-                return true;
-            }
-            else
-            {
-                index = Constants.kInvalidIndex;
-                return false;
-            }
+            return (AddHeapElement(ref hpe), hpe);
         }
 
         //cache ClassIndex and ProcdureNode for repeated calls of the same type object.
@@ -734,8 +713,7 @@ namespace ProtoCore.DSASM
             // We start from a clean sweepSet
             sweepSet.Clear();
 
-            sweepSet.UnionWith(Enumerable.Range(0, heapElements.Count));
-            sweepSet.ExceptWith(freeList);
+            sweepSet.UnionWith(heapElements.Keys);
             sweepSet.ExceptWith(fixedHeapElements);
 
             grayList = new LinkedList<StackValue>();
@@ -811,8 +789,7 @@ namespace ProtoCore.DSASM
                 }
 
                 totalAllocated -= hp.MemorySize;
-                heapElements[ptr] = null;
-                freeList.Add(ptr);
+                heapElements.TryRemove(ptr, out _);
             }
 
             gcDebt = totalAllocated > GC_THRESHOLD ? totalAllocated : GC_THRESHOLD;
@@ -826,8 +803,7 @@ namespace ProtoCore.DSASM
         {
             foreach (var hp in heapElements)
             {
-                if (hp != null)
-                    hp.Mark = GCMark.White;
+                hp.Value.Mark = GCMark.White;
             }
         }
 
@@ -878,9 +854,8 @@ namespace ProtoCore.DSASM
                 return false;
 
             var validPointers = gcroots.Where(r => r.IsReferenceType && 
-                                                   r.RawData < heapElements.Count() && 
                                                    r.RawData >= 0 && 
-                                                   heapElements[(int)r.RawData] != null);
+                                                   heapElements.ContainsKey((int)r.RawData));
             roots = new List<StackValue>(validPointers);
             executive = exe;
             StartCollection();
