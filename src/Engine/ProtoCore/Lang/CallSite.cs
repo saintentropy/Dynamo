@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -8,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Soap;
 using System.Text;
+using System.Threading.Tasks;
 using ProtoCore.DSASM;
 using ProtoCore.Exceptions;
 using ProtoCore.Lang;
@@ -81,7 +83,7 @@ namespace ProtoCore
                     Validity.Assert(NestedData != null,
                         "Invalid recursion logic, this is a VM bug, please report to the Dynamo Team");
 
-                    return NestedData.Any(srtd => srtd.HasAnyNestedData);
+                    return NestedData.Any(srtd => srtd.Value.HasAnyNestedData);
                 }
             }
 
@@ -119,13 +121,11 @@ namespace ProtoCore
                     int nestedDataCount = info.GetInt32(marker + objectID + "_NestedDataCount");
 
                     if (nestedDataCount > 0)
-                        srtd.NestedData = new List<SingleRunTraceData>();
+                        srtd.NestedData = new ConcurrentDictionary<int,SingleRunTraceData>();
 
                     for (int i = 0; i < nestedDataCount; i++)
                     {
-                        srtd.NestedData.Add(
-                            DeserialseFromData(info, context, i, marker + objectID + "-")
-                            );
+                        srtd.NestedData[i] = DeserialseFromData(info, context, i, marker + objectID + "-");
                     }
 
                 }
@@ -187,7 +187,7 @@ namespace ProtoCore
                 return nestedTraceData.GetLeftMostData();
             }
 
-            public List<SingleRunTraceData> NestedData;
+            public ConcurrentDictionary<int,SingleRunTraceData> NestedData;
             public ISerializable Data;
 
             public bool Contains(ISerializable data)
@@ -202,9 +202,9 @@ namespace ProtoCore
 
                 if (HasNestedData)
                 {
-                    foreach (SingleRunTraceData srtd in NestedData)
+                    foreach (var item in NestedData)
                     {
-                        if (srtd.Contains(data))
+                        if (item.Value.Contains(data))
                             return true;
                     }
                 }
@@ -221,8 +221,8 @@ namespace ProtoCore
 
                 if (HasNestedData)
                 {
-                    foreach (SingleRunTraceData srtd in NestedData)
-                        ret.AddRange(srtd.RecursiveGetNestedData());
+                    foreach (var item in NestedData)
+                        ret.AddRange(item.Value.RecursiveGetNestedData());
                 }
 
                 return ret;
@@ -1693,12 +1693,12 @@ namespace ProtoCore
 
                 StackValue[] retSVs = new StackValue[retSize];
                 SingleRunTraceData retTrace = newTraceData;
-                retTrace.NestedData = new List<SingleRunTraceData>(); //this will shadow the SVs as they are created
+                retTrace.NestedData = new ConcurrentDictionary<int,SingleRunTraceData>(); //this will shadow the SVs as they are created
 
                 //Populate out the size of the list with default values
                 //@TODO:Luke perf optimisation here
                 for (int i = 0; i < retSize; i++)
-                    retTrace.NestedData.Add(new SingleRunTraceData());
+                    retTrace.NestedData[i] = new SingleRunTraceData();
 
                 for (int i = 0; i < retSize; i++)
                 {
@@ -1792,62 +1792,140 @@ namespace ProtoCore
                 StackValue[] retSVs = new StackValue[retSize];
 
                 SingleRunTraceData retTrace = newTraceData;
-                retTrace.NestedData = new List<SingleRunTraceData>(retSize); //this will shadow the SVs as they are created
+                retTrace.NestedData = new ConcurrentDictionary<int, SingleRunTraceData>(); //this will shadow the SVs as they are created
 
                 //Populate out the size of the list with default values
                 //@TODO:Luke perf optimisation here
                 for (int i = 0; i < retSize; i++)
                 {
-                    retTrace.NestedData.Add(new SingleRunTraceData());
+                    retTrace.NestedData[i] = new SingleRunTraceData();
                 }
-
-                //Build the call
-                List<StackValue> newFormalParams = formalParameters.ToList();
 
                 if (supressArray)
                 {
+                    //Build the call
+                    List<StackValue> newFormalParams = formalParameters.ToList();
+
                     List<ReplicationInstruction> newRIs = replicationInstructions.GetRange(1, replicationInstructions.Count - 1);
 
                     return ExecWithRISlowPath(functionEndPoints, c, newFormalParams, newRIs, stackFrame, runtimeCore, previousTraceData, newTraceData, finalFunctionEndPoint);
                 }
 
                 //Now iterate over each of these options
-                for (int i = 0; i < retSize; i++)
+                if (replicationInstructions.Count == 1 && finalFunctionEndPoint is FFIFunctionEndPoint)
                 {
-                    //It was an array pack the arg with the current value
-                    newFormalParams[cartIndex] = array.GetValueFromIndex(i, runtimeCore);
+                    FFIFunctionEndPoint ffep = (FFIFunctionEndPoint)finalFunctionEndPoint;
+                    ffep.Init(runtimeCore);
 
-                    List<ReplicationInstruction> newRIs = replicationInstructions.GetRange(1, replicationInstructions.Count - 1);
+                    List<StackValue> newFormalParams = formalParameters.ToList();
+                    newFormalParams[cartIndex] = StackValue.Null;
+                    newFormalParams = ffep.CoerceParameters(newFormalParams, runtimeCore);
 
-                    SingleRunTraceData lastExecTrace;
+                    //if (stackFrame != null)
+                    //{
+                    //    stackFrame.FunctionBlock = ffep.BlockScope;
 
-                    if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                    //    StackValue svThisPtr = stackFrame.ThisPtr;
+                    //    if (null != ffep.mFNode && ffep.mFNode.IsAutoGeneratedThisProc)
+                    //    {
+                    //        bool isStaticCall = svThisPtr.IsPointer && Constants.kInvalidPointer == svThisPtr.Pointer;
+                    //        if (isStaticCall)
+                    //        {
+                    //            var stackValue = cartIndex == 0 ? formalParameters[0] : array.GetValueFromIndex(0, runtimeCore);
+                    //            {
+                    //                stackFrame.ThisPtr = stackValue;
+                    //            }
+                    //        }
+
+                    //    }
+                    //}
+
+                    Parallel.For(0, retSize, i =>
                     {
-                        //There was previous data that needs loading into the cache
-                        lastExecTrace = previousTraceData.NestedData[i];
-                    }
-                    else if (previousTraceData.HasData && i == 0)
+                        List<StackValue> finalFormalParams = newFormalParams.ToList();
+
+                        //We now coerce the last stackValue
+                        finalFormalParams[cartIndex] = TypeSystem.Coerce(
+                            array.GetValueFromIndex(i, runtimeCore),
+                            ((FFIFunctionEndPoint)finalFunctionEndPoint).FormalParams[cartIndex],
+                            runtimeCore);
+
+                        List<ReplicationInstruction> newRIs = replicationInstructions.GetRange(1, replicationInstructions.Count - 1);
+
+                        SingleRunTraceData lastExecTrace;
+
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        {
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
+                        }
+                        else if (previousTraceData.HasData && i == 0)
+                        {
+                            //We've moved up one dimension, and there was a previous run
+                            lastExecTrace = new SingleRunTraceData();
+                            lastExecTrace.Data = previousTraceData.GetLeftMostData();
+
+                        }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //previousTraceData = lastExecTrace;
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithZeroRI(functionEndPoints, c, finalFormalParams, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint, true);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
+                    });
+
+                    for (int i = 0; i < retSize; i++)
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+                }
+                else
+                {
+                    //Build the call
+                    List<StackValue> newFormalParams = formalParameters.ToList();
+
+                    for (int i = 0; i < retSize; i++)
                     {
-                        //We've moved up one dimension, and there was a previous run
-                        lastExecTrace = new SingleRunTraceData();
-                        lastExecTrace.Data = previousTraceData.GetLeftMostData();
+                        //It was an array pack the arg with the current value
+                        newFormalParams[cartIndex] = array.GetValueFromIndex(i, runtimeCore);
 
+                        List<ReplicationInstruction> newRIs = replicationInstructions.GetRange(1, replicationInstructions.Count - 1);
+
+                        SingleRunTraceData lastExecTrace;
+
+                        if (previousTraceData.HasNestedData && i < previousTraceData.NestedData.Count)
+                        {
+                            //There was previous data that needs loading into the cache
+                            lastExecTrace = previousTraceData.NestedData[i];
+                        }
+                        else if (previousTraceData.HasData && i == 0)
+                        {
+                            //We've moved up one dimension, and there was a previous run
+                            lastExecTrace = new SingleRunTraceData();
+                            lastExecTrace.Data = previousTraceData.GetLeftMostData();
+
+                        }
+                        else
+                        {
+                            //We're off the edge of the previous trace window
+                            //So just pass in an empty block
+                            lastExecTrace = new SingleRunTraceData();
+                        }
+
+                        //previousTraceData = lastExecTrace;
+                        SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
+
+                        retSVs[i] = ExecWithRISlowPath(functionEndPoints, c, newFormalParams, newRIs, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
+
+                        runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
+
+                        retTrace.NestedData[i] = cleanRetTrace;
                     }
-                    else
-                    {
-                        //We're off the edge of the previous trace window
-                        //So just pass in an empty block
-                        lastExecTrace = new SingleRunTraceData();
-                    }
-
-                    //previousTraceData = lastExecTrace;
-                    SingleRunTraceData cleanRetTrace = new SingleRunTraceData();
-
-                    retSVs[i] = ExecWithRISlowPath(functionEndPoints, c, newFormalParams, newRIs, stackFrame, runtimeCore, lastExecTrace, cleanRetTrace, finalFunctionEndPoint);
-
-                    runtimeCore.AddCallSiteGCRoot(CallSiteID, retSVs[i]);
-
-                    retTrace.NestedData[i] = cleanRetTrace;
                 }
 
                 try
@@ -1869,7 +1947,7 @@ namespace ProtoCore
         /// </summary>
         private StackValue ExecWithZeroRI(List<FunctionEndPoint> functionEndPoint, Context c,
                                           List<StackValue> formalParameters, StackFrame stackFrame, RuntimeCore runtimeCore,
-                                          SingleRunTraceData previousTraceData, SingleRunTraceData newTraceData, FunctionEndPoint finalFep = null)
+                                          SingleRunTraceData previousTraceData, SingleRunTraceData newTraceData, FunctionEndPoint finalFep = null, bool isCoerced = false)
         {
             if (runtimeCore.CancellationPending)
             {
@@ -1887,14 +1965,6 @@ namespace ProtoCore
                     string.Format(Resources.FunctionDispatchFailed, "{2EB39E1B-557C-4819-94D8-CF7C9F933E8A}"));
                 return StackValue.Null;
             }
-
-            if (runtimeCore.Options.IDEDebugMode && runtimeCore.Options.RunMode != InterpreterMode.Expression)
-            {
-                DebugFrame debugFrame = runtimeCore.DebugProps.DebugStackFrame.Peek();
-                debugFrame.FinalFepChosen = finalFep;
-            }
-
-            List<StackValue> coercedParameters = finalFep.CoerceParameters(formalParameters, runtimeCore);
 
             // Correct block id where the function is defined. 
             stackFrame.FunctionBlock = finalFep.BlockScope;
@@ -1915,8 +1985,7 @@ namespace ProtoCore
             }
 
             //EXECUTE
-            StackValue ret = finalFep.Execute(c, coercedParameters, stackFrame, runtimeCore);
-
+            StackValue ret = finalFep.Execute(c, isCoerced ? formalParameters : finalFep.CoerceParameters(formalParameters, runtimeCore), stackFrame, runtimeCore); ;
             if (ret.IsNull)
             {
                 //wipe the trace cache
