@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <Platforms>AnyCPU;NET60_Linux;</Platforms>
+        <Platforms>AnyCPU;NET70_Linux;</Platforms>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
         <PlatformTarget>x64</PlatformTarget>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <OutputType>Exe</OutputType>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <OutputPath Condition=" '$(OutputPath)' == '' ">$(SolutionDir)\bin\$(Platform)\$(Configuration)</OutputPath>
