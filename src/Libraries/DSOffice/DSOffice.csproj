@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CSVNodes.cs" />
-    <Compile Include="Excel.cs" Condition=" '$(RuntimeIdentifier)' == 'win10-x64' " />
+    <Compile Include="Excel.cs" Condition=" '$(RuntimeIdentifier)' == 'win-x64' " />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -42,7 +42,7 @@
         <Name>DynamoCore</Name>
         <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\DSOfficeUtilities\DSOfficeUtilities.csproj" Condition=" '$(RuntimeIdentifier)' == 'win10-x64' " />
+    <ProjectReference Include="..\DSOfficeUtilities\DSOfficeUtilities.csproj" Condition=" '$(RuntimeIdentifier)' == 'win-x64' " />
     <ProjectReference Include="..\..\NodeServices\DynamoServices.csproj">
         <Project>{ef879a10-041d-4c68-83e7-3192685f1bae}</Project>
         <Name>DynamoServices</Name>
