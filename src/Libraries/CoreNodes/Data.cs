@@ -624,7 +624,9 @@ namespace DSCore
         public static Dictionary<string, object> IsSupportedDataNodeType([ArbitraryDimensionArrayImport] object inputValue,
             string typeString, bool isList, bool isAutoMode, string playerValue)
         {
-            if(playerValue != null)
+            // If the playerValue is not empty, then we assume it was set by the player.
+            // In that case, we need to parse it to get the actual value replace the inputValue.
+            if (!string.IsNullOrEmpty(playerValue))
             {
                 try
                 {
