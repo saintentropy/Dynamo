@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.Serialization;
 using DSCore;
+using Dynamo.Graph;
 using Dynamo.Graph.Nodes;
 using Newtonsoft.Json;
 using ProtoCore.AST.AssociativeAST;
@@ -25,6 +26,7 @@ namespace CoreNodeModels
         private List<DynamoDropDownItem> serializedItems;
         private bool isAutoMode;
         private bool isList;
+        private string playerValue = "";
 
         /// <summary>
         /// AutoMode property
@@ -70,6 +72,30 @@ namespace CoreNodeModels
                 foreach (DynamoDropDownItem item in serializedItems)
                 {
                     Items.Add(item);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Indicates whether Node is input or not.
+        ///     Used to bind visibility of UI for user selection.
+        /// </summary>
+        public override bool IsInputNode
+        {
+            get { return true; }
+        }
+
+        [JsonIgnore]
+        public string PlayerValue
+        {
+            get { return playerValue; }
+            set
+            {
+                var valueToSet = value ?? "";
+                if (valueToSet != value)
+                {
+                    playerValue = valueToSet;
+                    MarkNodeAsModified();
                 }
             }
         }
@@ -134,12 +160,13 @@ namespace CoreNodeModels
             // the object to be (type) evaluated
             // the expected datatype
             // if the input is an ArrayList or not
-            var function = new Func<object, string, bool, bool, Dictionary<string, object>>(DSCore.Data.IsSupportedDataNodeType);
+            var function = new Func<object, string, bool, bool, string, Dictionary<string, object>>(DSCore.Data.IsSupportedDataNodeType);
             var funtionInputs = new List<AssociativeNode> {
                 inputAstNodes[0],
                 AstFactory.BuildStringNode((Items[SelectedIndex].Item as Data.DataNodeDynamoType).Type.ToString()),
                 AstFactory.BuildBooleanNode(IsList),
-                AstFactory.BuildBooleanNode(IsAutoMode)
+                AstFactory.BuildBooleanNode(IsAutoMode),
+                AstFactory.BuildStringNode(PlayerValue)
             };
 
 
@@ -199,6 +226,11 @@ namespace CoreNodeModels
                 }
             }
 
+            //Todo If the playerValue is not empty string then we can chanage the UI to reflect the value is coming from the player
+
+            //Now we reset this value to empty string so that the next time a value is set from upstream nodes we can know that it is not coming from the player
+            playerValue = "";
+
         }
 
 
@@ -211,6 +243,21 @@ namespace CoreNodeModels
         private void OnSerializing(StreamingContext context)
         {
             serializedItems = Items.ToList();
+        }
+
+        protected override bool UpdateValueCore(UpdateValueParams updateValueParams)
+        {
+            string name = updateValueParams.PropertyName;
+            string value = updateValueParams.PropertyValue;
+
+            switch (name)
+            {
+                case "Value":
+                    PlayerValue = value;
+                    return true; // UpdateValueCore handled.
+            }
+
+            return base.UpdateValueCore(updateValueParams);
         }
     }
 }
