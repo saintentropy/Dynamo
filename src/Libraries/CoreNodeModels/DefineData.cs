@@ -76,10 +76,7 @@ namespace CoreNodeModels
             }
         }
 
-        /// <summary>
-        ///     Indicates whether Node is input or not.
-        ///     Used to bind visibility of UI for user selection.
-        /// </summary>
+        [JsonIgnore]
         public override bool IsInputNode
         {
             get { return true; }
@@ -199,6 +196,12 @@ namespace CoreNodeModels
         /// <param name="data"></param>
         private void DataBridgeCallback(object data)
         {
+            //Todo If the playerValue is not empty string then we can chanage the UI to reflect the value is coming from the player
+            //Todo if the function call throws we don't get back to DatabridgeCallback.  Not sure if we need to handle this case
+
+            //Now we reset this value to empty string so that the next time a value is set from upstream nodes we can know that it is not coming from the player
+            playerValue = "";
+
             if (data == null) return;
 
             (bool IsValid, bool UpdateList, DataNodeDynamoType InputType) resultData = (ValueTuple<bool, bool, DataNodeDynamoType>)data;
@@ -225,12 +228,6 @@ namespace CoreNodeModels
                     SelectedIndex = 0;
                 }
             }
-
-            //Todo If the playerValue is not empty string then we can chanage the UI to reflect the value is coming from the player
-
-            //Now we reset this value to empty string so that the next time a value is set from upstream nodes we can know that it is not coming from the player
-            playerValue = "";
-
         }
 
 
