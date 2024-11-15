@@ -1015,7 +1015,22 @@ namespace Dynamo.PackageManager.Wpf.Tests
 
             // Case 6: No compatibility information is provided
             var resultNoCompatibility = PackageManagerSearchElement.CalculateCompatibility(
+                new List<Greg.Responses.Compatibility> {  },
+                compatibleDynamoVersion, compatibilityMap, null, hostName);
+
+            // Case 7: Mall formed compatibility information is provided
+            var resultbadCompatibility = PackageManagerSearchElement.CalculateCompatibility(
                 new List<Greg.Responses.Compatibility> { new Greg.Responses.Compatibility() },
+                compatibleDynamoVersion, compatibilityMap, null, hostName);
+
+            // Case 8: Under host context, but alternative host compatibility
+            var resultNotRightHost = PackageManagerSearchElement.CalculateCompatibility(
+                new List<Greg.Responses.Compatibility> { new Greg.Responses.Compatibility { name = "Civil", min = "2023.1", max = "2024.0.0" } },
+                compatibleDynamoVersion, compatibilityMap, null, hostName);
+
+            // Case 9: Under host context, but alternative host compatibility, fall back to Dynamo
+            var resultFallbackToDynamo2 = PackageManagerSearchElement.CalculateCompatibility(
+                new List<Greg.Responses.Compatibility> { new Greg.Responses.Compatibility { name = "Civil", min = "2023.1", max = "2024.0.0" }, new Greg.Responses.Compatibility { name = "dynamo", min = "2.10", max = "2.13.1" } },
                 compatibleDynamoVersion, compatibilityMap, null, hostName);
 
             // Assert
@@ -1025,6 +1040,9 @@ namespace Dynamo.PackageManager.Wpf.Tests
             Assert.IsFalse(resultIncompleteCompatibilityInfo, "Expected compatibility to be incompatible (false) when no dynamo information is provided, but any information for host is present.");
             Assert.IsTrue(resultFallbackToDynamo, "Expected compatibility to be true when under host but only Dynamo compatibility is provided.");
             Assert.IsNull(resultNoCompatibility, "Expected unknown compatibility (null) when no compatibility information is provided.");
+            Assert.IsNull(resultbadCompatibility, "Expected unknown compatibility (null) when bad compatibility information is provided.");
+            Assert.IsFalse(resultNotRightHost, "Expected compatibility to be false when under host but only different host compatibility is provided.");
+            Assert.IsTrue(resultFallbackToDynamo2, "Expected compatibility to be true when under host but with different host compatibility and Dynamo compatibility is provided.");
         }
 
         [Test]
