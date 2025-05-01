@@ -38,7 +38,7 @@ namespace UnitsUI
                 Tag = nodeView.ViewModel.DynamoViewModel
             };
 
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
+            //nodeView.MainContextMenu.Items.Add(editWindowItem);
 
             editWindowItem.Click += editWindowItem_Click;
 
@@ -46,7 +46,7 @@ namespace UnitsUI
             this.tb = new DynamoTextBox();
             tb.HorizontalAlignment = HorizontalAlignment.Stretch;
             tb.VerticalAlignment = VerticalAlignment.Center;
-            nodeView.inputGrid.Children.Add(tb);
+            //nodeView.inputGrid.Children.Add(tb);
             Grid.SetColumn(tb, 0);
             Grid.SetRow(tb, 0);
             tb.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0x88, 0xFF, 0xFF, 0xFF));
@@ -157,7 +157,7 @@ namespace UnitsUI
                 Header = Dynamo.Wpf.Properties.Resources.StringInputNodeEditMenu,
                 IsCheckable = false
             };
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
+            //nodeView.MainContextMenu.Items.Add(editWindowItem);
 
             editWindowItem.Click += editWindowItem_Click;
 
@@ -249,7 +249,7 @@ namespace UnitsUI
             };
             combo.SetBinding(Selector.SelectedItemProperty, indexBinding);
 
-            nodeView.inputGrid.Children.Add(grid);
+            //nodeView.inputGrid.Children.Add(grid);
         }
 
         public void editWindowItem_Click(object sender, RoutedEventArgs e)
@@ -296,7 +296,7 @@ namespace UnitsUI
                 DataContext = new UnitConverterViewModel(model, nodeView),
             };
             converterViewModel = converterControl.DataContext as UnitConverterViewModel;
-            nodeView.inputGrid.Children.Add(converterControl);
+            //nodeView.inputGrid.Children.Add(converterControl);
             converterControl.SelectConversionQuantity.PreviewMouseUp += SelectConversionQuantity_PreviewMouseUp;
             converterControl.SelectConversionFrom.PreviewMouseUp += SelectConversionFrom_PreviewMouseUp;
             converterControl.SelectConversionTo.PreviewMouseUp += SelectConversionTo_MouseLeftButtonDown;

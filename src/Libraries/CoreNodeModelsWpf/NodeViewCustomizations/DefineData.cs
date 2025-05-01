@@ -38,16 +38,16 @@ namespace CoreNodeModelsWpf.Nodes
             listToggleButton = formControl.listToggleBtn;
             listToggleButton.Click += listToggle_IsClicked;
 
-            nodeView.inputGrid.Margin = new Thickness(5, 0, 5, 0);
-            nodeView.inputGrid.RowDefinitions.Add(new RowDefinition());
-            nodeView.inputGrid.RowDefinitions.Add(new RowDefinition());
-            nodeView.inputGrid.ColumnDefinitions.Add(new ColumnDefinition());
-            nodeView.inputGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            //nodeView.inputGrid.Margin = new Thickness(5, 0, 5, 0);
+            //nodeView.inputGrid.RowDefinitions.Add(new RowDefinition());
+            //nodeView.inputGrid.RowDefinitions.Add(new RowDefinition());
+            //nodeView.inputGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            //nodeView.inputGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
             Grid.SetRow(formControl, 1);
             Grid.SetColumn(formControl, 0);
             Grid.SetColumnSpan(formControl, 2);
-            nodeView.inputGrid.Children.Add(formControl);
+            //nodeView.inputGrid.Children.Add(formControl);
             nodeView.SnapsToDevicePixels = true;
             nodeView.UseLayoutRounding = true;
 
@@ -57,10 +57,10 @@ namespace CoreNodeModelsWpf.Nodes
             base.CustomizeView(model, nodeView);
 
             var style = (Style)Dynamo.UI.SharedDictionaryManager.DynamoModernDictionary["NodeViewComboBox"];
-            dropdown = (ComboBox)nodeView.inputGrid.Children[1];
+            //dropdown = (ComboBox)nodeView.inputGrid.Children[1];
 
             // Remove dropdown from its current position
-            nodeView.inputGrid.Children.Remove(dropdown);
+            //nodeView.inputGrid.Children.Remove(dropdown);
 
             dropdown.Style = style;
 

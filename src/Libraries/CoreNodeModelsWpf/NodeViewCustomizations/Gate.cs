@@ -46,7 +46,7 @@ namespace CoreNodeModelsWpf.Nodes
 
             wp.Children.Add(rbTrue);
             wp.Children.Add(rbFalse);
-            nodeView.inputGrid.Children.Add(wp);
+            //nodeView.inputGrid.Children.Add(wp);
 
             rbFalse.DataContext = model;
             rbTrue.DataContext = model;

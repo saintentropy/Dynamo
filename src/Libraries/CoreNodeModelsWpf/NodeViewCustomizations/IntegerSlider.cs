@@ -14,7 +14,7 @@ namespace CoreNodeModelsWpf.NodeViewCustomizations
                 DataContext = new SliderViewModel<int>(model)
             };
 
-            nodeView.inputGrid.Children.Add(slider);
+            //nodeView.inputGrid.Children.Add(slider);
         }
 
         public void Dispose() { }
@@ -29,7 +29,7 @@ namespace CoreNodeModelsWpf.NodeViewCustomizations
                 DataContext = new SliderViewModel<long>(model)
             };
 
-            nodeView.inputGrid.Children.Add(slider);
+            //nodeView.inputGrid.Children.Add(slider);
         }
 
         public void Dispose() { }

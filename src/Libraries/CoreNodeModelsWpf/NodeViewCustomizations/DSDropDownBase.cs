@@ -32,7 +32,7 @@ namespace CoreNodeModelsWpf.Nodes
                 Style = (Style)SharedDictionaryManager.DynamoModernDictionary["RefreshComboBox"]
             };
 
-            nodeView.inputGrid.Children.Add(comboBox);
+            //nodeView.inputGrid.Children.Add(comboBox);
             Grid.SetColumn(comboBox, 0);
             Grid.SetRow(comboBox, 0);
 

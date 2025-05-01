@@ -79,7 +79,7 @@ namespace PythonNodeModelsWpf
             dynamoViewModel = nodeView.ViewModel.DynamoViewModel;
             workspaceModel = nodeView.ViewModel.WorkspaceViewModel.Model;
 
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
+            //nodeView.MainContextMenu.Items.Add(editWindowItem);
             editWindowItem.Click += EditScriptContent;
 
             var previousdelegates = pythonNodeModel.GetInvocationListForEditAction();
@@ -94,7 +94,7 @@ namespace PythonNodeModelsWpf
             pythonNodeModel.PropertyChanged += NodeModel_PropertyChanged;
 
             pythonEngineVersionMenu = new MenuItem { Header = PythonNodeModels.Properties.Resources.PythonNodeContextMenuEngineSwitcher, IsCheckable = false };
-            nodeView.MainContextMenu.Items.Add(pythonEngineVersionMenu);
+            //nodeView.MainContextMenu.Items.Add(pythonEngineVersionMenu);
 
             learnMoreItem.Click += OpenPythonLearningMaterial;
 
@@ -103,7 +103,7 @@ namespace PythonNodeModelsWpf
 
             PythonEngineManager.Instance.AvailableEngines.CollectionChanged += PythonEnginesChanged;
 
-            nodeView.MainContextMenu.Items.Add(learnMoreItem);
+            //nodeView.MainContextMenu.Items.Add(learnMoreItem);
             
 
             nodeView.MouseDown += View_MouseDown;

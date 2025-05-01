@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows.Data;
 using Dynamo.Controls;
 using Dynamo.Graph.Nodes.CustomNodes;
@@ -12,7 +12,7 @@ namespace Dynamo.Wpf
         {
             var input = new ParameterEditor(nodeView);
 
-            nodeView.inputGrid.Children.Add(input);
+            //nodeView.inputGrid.Children.Add(input);
             Grid.SetColumn(input, 0);
             Grid.SetRow(input, 0);
 

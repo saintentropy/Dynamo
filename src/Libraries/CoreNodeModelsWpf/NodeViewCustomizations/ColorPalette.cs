@@ -40,7 +40,7 @@ namespace CoreNodeModelsWpf.Nodes
             ColorPaletteUINode.VerticalAlignment = VerticalAlignment.Top;
             ColorPaletteUINode.ColorPickerSelectedColor += ColorPaletteUINode_ColorPickerSelectedColor;
             colorPaletteNode.PropertyChanged += ColorPaletteNode_PropertyChanged;
-            nodeView.ContentGrid.Children.Add(ColorPaletteUINode);
+            //nodeView.ContentGrid.Children.Add(ColorPaletteUINode);
 
             //kick off ui to match initial model state.
             this.ColorPaletteNode_PropertyChanged(ColorPaletteUINode, new PropertyChangedEventArgs("DsColor"));

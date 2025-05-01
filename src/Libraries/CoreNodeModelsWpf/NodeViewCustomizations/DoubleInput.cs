@@ -53,7 +53,7 @@ namespace CoreNodeModelsWpf.Nodes
                 MinWidth = 40
             };
 
-            nodeView.inputGrid.Children.Add(tb);
+            //nodeView.inputGrid.Children.Add(tb);
             Grid.SetColumn(tb, 0);
             Grid.SetRow(tb, 0);
 

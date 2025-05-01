@@ -30,7 +30,7 @@ namespace PythonNodeModelsWpf
             dynamoViewModel = nodeView.ViewModel.DynamoViewModel;
 
             pythonEngineVersionMenu = new MenuItem { Header = PythonNodeModels.Properties.Resources.PythonNodeContextMenuEngineSwitcher, IsCheckable = false };
-            nodeView.MainContextMenu.Items.Add(pythonEngineVersionMenu);
+            //nodeView.MainContextMenu.Items.Add(pythonEngineVersionMenu);
 
             PythonNodeUtils.GetEngineNames(nodeModel).ForEach(engineName => dynamoViewModel.AddPythonEngineToMenuItems(
                 new List<PythonNodeBase>() { pythonStringNodeModel }, pythonEngineVersionMenu, UpdateEngine, engineName, true));
@@ -39,7 +39,7 @@ namespace PythonNodeModelsWpf
 
             learnMoreItem.Click += OpenPythonLearningMaterial;
 
-            nodeView.MainContextMenu.Items.Add(learnMoreItem);
+            //nodeView.MainContextMenu.Items.Add(learnMoreItem);
 
             nodeModel.Disposed += NodeModel_Disposed;
 

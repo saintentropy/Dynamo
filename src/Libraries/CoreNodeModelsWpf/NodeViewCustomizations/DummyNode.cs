@@ -31,7 +31,7 @@ namespace CoreNodeModelsWpf.Nodes
             };
             RenderOptions.SetBitmapScalingMode(dummyNodeImage, BitmapScalingMode.HighQuality);
 
-            nodeView.inputGrid.Children.Add(dummyNodeImage);
+            //nodeView.inputGrid.Children.Add(dummyNodeImage);
             model.Warning(model.GetDescription(), true);
 
             // Grid containing the State overlay Glyphs in Zoomed Out state

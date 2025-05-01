@@ -350,7 +350,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             xyLineChartControl = new XYLineChartControl(model);
-            nodeView.inputGrid.Children.Add(xyLineChartControl);
+            //nodeView.inputGrid.Children.Add(xyLineChartControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

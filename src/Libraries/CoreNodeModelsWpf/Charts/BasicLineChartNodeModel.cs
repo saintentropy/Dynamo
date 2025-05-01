@@ -317,7 +317,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             basicLineChartControl = new BasicLineChartControl(model);
-            nodeView.inputGrid.Children.Add(basicLineChartControl);
+            //nodeView.inputGrid.Children.Add(basicLineChartControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

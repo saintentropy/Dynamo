@@ -41,7 +41,7 @@ namespace CoreNodeModelsWpf.Nodes
                 Header = Dynamo.Wpf.Properties.Resources.StringInputNodeEditMenu, 
                 IsCheckable = false
             };
-            nodeView.MainContextMenu.Items.Add(editWindowItem);
+            //nodeView.MainContextMenu.Items.Add(editWindowItem);
 
             editWindowItem.Click += editWindowItem_Click;
 
@@ -71,7 +71,7 @@ namespace CoreNodeModelsWpf.Nodes
                 tb.Height = stringInput.SerializedHeight;
             }
 
-            nodeView.inputGrid.Children.Add(tb);
+            //nodeView.inputGrid.Children.Add(tb);
             Grid.SetColumn(tb, 0);
             Grid.SetRow(tb, 0);
 
@@ -84,7 +84,7 @@ namespace CoreNodeModelsWpf.Nodes
                 UpdateSourceTrigger = UpdateSourceTrigger.Explicit
             });
 
-            AddResizeThumb(tb, nodeView.inputGrid, stringInput);
+            //AddResizeThumb(tb, nodeView.inputGrid, stringInput);
         }
 
         /// <summary>

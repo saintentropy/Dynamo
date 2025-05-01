@@ -27,7 +27,7 @@ namespace Dynamo.Wpf
                 Header = Resources.ContextMenuEditCustomNode,
                 IsCheckable = false
             };
-            nodeView.MainContextMenu.Items.Add(editItem);
+            //nodeView.MainContextMenu.Items.Add(editItem);
             editItem.Click += (sender, args) => GoToWorkspace(nodeView.ViewModel);
 
             // edit properties
@@ -36,7 +36,7 @@ namespace Dynamo.Wpf
                 Header = Resources.ContextMenuEditCustomNodeProperty,
                 IsCheckable = false
             };
-            nodeView.MainContextMenu.Items.Add(editPropertiesItem);
+            //nodeView.MainContextMenu.Items.Add(editPropertiesItem);
             editPropertiesItem.Click += (sender, args) => EditCustomNodeProperties();
 
             // Check if the workspace is read-only or not, disable editPropertiesItem accordingly
@@ -57,7 +57,7 @@ namespace Dynamo.Wpf
                 Header = Resources.ContextMenuPublishCustomNode,
                 IsCheckable = false
             };
-            nodeView.MainContextMenu.Items.Add(publishCustomNodeItem);
+            //nodeView.MainContextMenu.Items.Add(publishCustomNodeItem);
 
             publishCustomNodeItem.Command = nodeView.ViewModel.DynamoViewModel.PublishSelectedNodesCommand;
             publishCustomNodeItem.CommandParameter = functionNodeModel;

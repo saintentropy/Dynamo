@@ -14,7 +14,7 @@ namespace CoreNodeModelsWpf.NodeViewCustomizations
                 DataContext = new SliderViewModel<double>(model)
             };
 
-            nodeView.inputGrid.Children.Add(slider);
+            //nodeView.inputGrid.Children.Add(slider);
         }
 
         public void Dispose()

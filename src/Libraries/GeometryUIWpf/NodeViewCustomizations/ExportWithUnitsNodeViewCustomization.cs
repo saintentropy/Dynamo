@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -34,7 +34,7 @@ namespace Dynamo.Wpf.NodeViewCustomizations
             };
 
             exporterViewModel = exporterControl.DataContext as ExportWithUnitsViewModel;
-            nodeView.inputGrid.Children.Add(exporterControl);
+            //nodeView.inputGrid.Children.Add(exporterControl);
             exporterControl.Loaded += converterControl_Loaded;
             exporterControl.SelectExportedUnit.PreviewMouseUp += SelectExportedUnit_PreviewMouseUp;
         }

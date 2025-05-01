@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows;
@@ -35,8 +35,8 @@ namespace CoreNodeModelsWpf.Nodes
             // TODO(Peter): This is a hack written a long time ago, should be cleaned up
             nodeModel.PropertyChanged += NodeModelOnPropertyChanged;
 
-            nodeView.PresentationGrid.Children.Add(image);
-            nodeView.PresentationGrid.Visibility = Visibility.Visible;
+            //nodeView.PresentationGrid.Children.Add(image);
+            //nodeView.PresentationGrid.Visibility = Visibility.Visible;
 
             HandleMirrorData();
         }

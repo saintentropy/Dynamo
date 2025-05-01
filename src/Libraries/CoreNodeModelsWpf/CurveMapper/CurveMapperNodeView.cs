@@ -15,7 +15,7 @@ namespace Dynamo.Wpf.CurveMapper
             curveMapperControl.DataContext = model;
             curveMapperNodeModel = model;
 
-            nodeView.inputGrid.Children.Add(curveMapperControl);
+            //nodeView.inputGrid.Children.Add(curveMapperControl);
         }
 
         public void Dispose()

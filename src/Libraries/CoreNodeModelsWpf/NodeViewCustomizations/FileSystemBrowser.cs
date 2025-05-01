@@ -50,7 +50,7 @@ namespace DSCore.File
 
             var sp = new StackPanel();
             sp.Children.Add(readFileButton);
-            nodeView.inputGrid.Children.Add(sp);
+            //nodeView.inputGrid.Children.Add(sp);
 
             nodeView.grid.Children.Add(tb);
             Grid.SetColumn(tb, 1);

@@ -49,10 +49,10 @@ namespace Dynamo.Controls
             get { return topControl; }
         }
 
-        public Grid ContentGrid
-        {
-            get { return inputGrid; }
-        }
+        //public Grid ContentGrid
+        //{
+        //    //get { return inputGrid; }
+        //}
 
         public NodeViewModel ViewModel
         {
@@ -91,7 +91,7 @@ namespace Dynamo.Controls
                 previewControl.StateChanged += OnPreviewControlStateChanged;
                 previewControl.bubbleTools.MouseEnter += OnPreviewControlMouseEnter;
                 previewControl.bubbleTools.MouseLeave += OnPreviewControlMouseLeave;
-                expansionBay.Children.Add(previewControl);
+                //expansionBay.Children.Add(previewControl);
             }
         }
 
@@ -112,10 +112,10 @@ namespace Dynamo.Controls
 
         public NodeView()
         {
-            Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoModernDictionary);
-            Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoColorsAndBrushesDictionary);
+            //Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoModernDictionary);
+            //Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoColorsAndBrushesDictionary);
             Resources.MergedDictionaries.Add(SharedDictionaryManager.DataTemplatesDictionary);
-            Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoConvertersDictionary);
+            //Resources.MergedDictionaries.Add(SharedDictionaryManager.DynamoConvertersDictionary);
             Resources.MergedDictionaries.Add(SharedDictionaryManager.InPortsDictionary);
             Resources.MergedDictionaries.Add(SharedDictionaryManager.OutPortsDictionary);
 
@@ -123,7 +123,7 @@ namespace Dynamo.Controls
 
             Loaded += OnNodeViewLoaded;
             Unloaded += OnNodeViewUnloaded;
-            inputGrid.Loaded += NodeViewReady;
+            //inputGrid.Loaded += NodeViewReady;
 
             nodeBorder.SizeChanged += OnSizeChanged;
             DataContextChanged += OnDataContextChanged;
@@ -150,7 +150,7 @@ namespace Dynamo.Controls
                 previewControl.StateChanged -= OnPreviewControlStateChanged;
                 previewControl.MouseEnter -= OnPreviewControlMouseEnter;
                 previewControl.MouseLeave -= OnPreviewControlMouseLeave;
-                expansionBay.Children.Remove(previewControl);
+                //expansionBay.Children.Remove(previewControl);
                 previewControl = null;
             }
             nodeBorder.SizeChanged -= OnSizeChanged;
@@ -393,12 +393,12 @@ namespace Dynamo.Controls
         {
             enabledDict.Clear();
 
-            foreach (UIElement e in inputGrid.Children)
-            {
-                enabledDict[e] = e.IsEnabled;
+            //foreach (UIElement e in inputGrid.Children)
+            //{
+            //    enabledDict[e] = e.IsEnabled;
 
-                e.IsEnabled = false;
-            }
+            //    e.IsEnabled = false;
+            //}
 
             //set the state using the view model's command
             if (ViewModel.SetStateCommand.CanExecute(ElementState.Dead))
@@ -479,11 +479,11 @@ namespace Dynamo.Controls
         private void ChangeNameInline()
         {
             NameBlock.Visibility = Visibility.Collapsed;
-            EditableNameBox.Visibility = Visibility.Visible;
+            //EditableNameBox.Visibility = Visibility.Visible;
 
-            EditableNameBox.Focus();
-            if (EditableNameBox.SelectionLength == 0)
-                EditableNameBox.SelectAll();
+            //EditableNameBox.Focus();
+            //if (EditableNameBox.SelectionLength == 0)
+            //    EditableNameBox.SelectAll();
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Dynamo.Controls
         private void EndInlineRename()
         {
             NameBlock.Visibility = Visibility.Visible;
-            EditableNameBox.Visibility = Visibility.Collapsed;
+            //EditableNameBox.Visibility = Visibility.Collapsed;
 
             ViewModel.DynamoViewModel.ExecuteCommand(
                 new DynCmd.UpdateModelValueCommand(

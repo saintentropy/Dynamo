@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
@@ -64,7 +64,7 @@ namespace CoreNodeModelsWpf.Nodes
 
             wp.Children.Add(rbTrue);
             wp.Children.Add(rbFalse);
-            nodeView.inputGrid.Children.Add(wp);
+            //nodeView.inputGrid.Children.Add(wp);
 
             //rbFalse.IsChecked = true;
             rbTrue.Checked += OnRadioButtonClicked;

@@ -56,8 +56,8 @@ namespace CoreNodeModelsWpf.Nodes
             watchTree.SizeChanged += (sender, args) =>
                 nodeModel.SetWatchSize(args.NewSize.Width, args.NewSize.Height);
 
-            nodeView.PresentationGrid.Children.Add(watchTree);
-            nodeView.PresentationGrid.Visibility = Visibility.Visible;
+            //nodeView.PresentationGrid.Children.Add(watchTree);
+            //nodeView.PresentationGrid.Visibility = Visibility.Visible;
             // disable preview control
             nodeView.TogglePreviewControlAllowance();
 
@@ -113,14 +113,14 @@ namespace CoreNodeModelsWpf.Nodes
                 IsCheckable = true,
             };
             rawDataMenuItem.SetBinding(MenuItem.IsCheckedProperty, checkedBinding);
-            nodeView.MainContextMenu.Items.Add(rawDataMenuItem);
+            //nodeView.MainContextMenu.Items.Add(rawDataMenuItem);
 
             var copyToClipboardMenuItem = new MenuItem
             {
                 Header = Dynamo.Wpf.Properties.Resources.ContextMenuCopy
             };
             copyToClipboardMenuItem.Click += OnCopyToClipboardClick;
-            nodeView.MainContextMenu.Items.Add(copyToClipboardMenuItem);
+            //nodeView.MainContextMenu.Items.Add(copyToClipboardMenuItem);
         }
 
         private void Subscribe()

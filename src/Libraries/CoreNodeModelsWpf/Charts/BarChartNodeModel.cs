@@ -347,7 +347,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             barChartControl = new BarChartControl(model);
-            nodeView.inputGrid.Children.Add(barChartControl);
+            //nodeView.inputGrid.Children.Add(barChartControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

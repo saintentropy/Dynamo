@@ -30,7 +30,7 @@ namespace CoreNodeModelsWpf.Nodes
             };
 
             var selectionControl = new ElementSelectionControl { DataContext = this };
-            nodeView.inputGrid.Children.Add(selectionControl);
+            //nodeView.inputGrid.Children.Add(selectionControl);
         }
 
         public void Dispose()

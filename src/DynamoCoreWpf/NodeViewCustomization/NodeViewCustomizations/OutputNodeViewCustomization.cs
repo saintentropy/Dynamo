@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 using Dynamo.Controls;
@@ -12,7 +12,7 @@ namespace Dynamo.Wpf
         public void CustomizeView(Output outputNodeModel, NodeView nodeView)
         {
             var output = new OutputEditor(nodeView);
-            nodeView.inputGrid.Children.Add(output);
+            //nodeView.inputGrid.Children.Add(output);
             
             Grid.SetColumn(output, 0);
             Grid.SetRow(output, 0);

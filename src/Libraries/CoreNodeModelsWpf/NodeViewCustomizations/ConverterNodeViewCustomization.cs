@@ -1,4 +1,4 @@
-﻿using CoreNodeModels;
+using CoreNodeModels;
 using CoreNodeModelsWpf.Controls;
 using Dynamo.Controls;
 using Dynamo.Graph.Nodes;
@@ -26,7 +26,7 @@ namespace CoreNodeModelsWpf.NodeViewCustomizations
                 DataContext = new ConverterViewModel(model, nodeView),                 
             };
             converterViewModel = converterControl.DataContext as ConverterViewModel;
-            nodeView.inputGrid.Children.Add(converterControl);
+            //nodeView.inputGrid.Children.Add(converterControl);
             converterControl.Loaded +=converterControl_Loaded;                                
             converterControl.SelectConversionMetric.PreviewMouseUp +=SelectConversionMetric_PreviewMouseUp;
             converterControl.SelectConversionFrom.PreviewMouseUp +=SelectConversionFrom_PreviewMouseUp;

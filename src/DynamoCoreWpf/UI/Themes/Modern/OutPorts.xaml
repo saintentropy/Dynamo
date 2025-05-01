@@ -8,8 +8,8 @@
                     xmlns:viewModels="clr-namespace:Dynamo.ViewModels;assembly=DynamoCoreWpf"
                     xmlns:views="clr-namespace:Dynamo.UI.Views;assembly=DynamoCoreWpf">
     <ResourceDictionary.MergedDictionaries>
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoColorsAndBrushesDictionaryUri}" />
+        <!--<ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
+        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoColorsAndBrushesDictionaryUri}" />-->
         <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoModernDictionaryUri}" />
     </ResourceDictionary.MergedDictionaries>
 
@@ -19,9 +19,11 @@
         <Grid Name="MainGrid"
               Background="Transparent"
               HorizontalAlignment="Right"
+              Height="34px"
+                Width="82.5px"
               IsHitTestVisible="True">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Name="PortNameColumn" Width="*"/>
+                <ColumnDefinition Name="PortNameColumn" Width="52.5"/>
                 <ColumnDefinition Name="ValueMarkerColumn" Width="5px"/>
                 <ColumnDefinition Name="PortSnappingColumn" Width="25px" />
             </Grid.ColumnDefinitions>
@@ -128,6 +130,8 @@
                            FontSize="12px"
                            Foreground="#DCDCDC"
                            IsHitTestVisible="False"
+                           Height="17px"
+                            Width="29.5px"
                            Text="{Binding Path=PortName}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">

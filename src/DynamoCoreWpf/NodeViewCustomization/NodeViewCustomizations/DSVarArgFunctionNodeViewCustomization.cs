@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using Dynamo.Controls;
 using Dynamo.Graph.Nodes.ZeroTouch;
@@ -32,7 +32,7 @@ namespace Dynamo.Wpf
             wp.Children.Add(addButton);
             wp.Children.Add(subButton);
 
-            nodeView.inputGrid.Children.Add(wp);
+            //nodeView.inputGrid.Children.Add(wp);
         }
 
         public void Dispose()

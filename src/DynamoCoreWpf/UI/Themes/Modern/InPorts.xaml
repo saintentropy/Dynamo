@@ -7,8 +7,8 @@
                     xmlns:viewModels="clr-namespace:Dynamo.ViewModels;assembly=DynamoCoreWpf"
                     xmlns:views="clr-namespace:Dynamo.UI.Views;assembly=DynamoCoreWpf">
     <ResourceDictionary.MergedDictionaries>
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
-        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoColorsAndBrushesDictionaryUri}" />
+        <!--<ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoConvertersDictionaryUri}" />
+        <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoColorsAndBrushesDictionaryUri}" />-->
         <ui:SharedResourceDictionary Source="{x:Static ui:SharedDictionaryManager.DynamoModernDictionaryUri}" />
     </ResourceDictionary.MergedDictionaries>
     <DataTemplate DataType="{x:Type viewModels:InPortViewModel}">
@@ -16,16 +16,17 @@
         <!--  Grid that contains the entire port  -->
         <Grid Name="MainGrid"
               Height="34px"
+              Width="123.5px"
               Background="Transparent"
               IsHitTestVisible="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Name="PortSnappingColumn" Width="25px" />
                 <ColumnDefinition Name="ValueMarkerColumn" Width="5px" />
                 <ColumnDefinition Name="GapBetweenValueMarkerAndPortName" Width="6px" />
-                <ColumnDefinition Name="PortNameColumn" Width="*" />
+                <ColumnDefinition Name="PortNameColumn" Width="11.5px" />
                 <ColumnDefinition Name="GapBetweenPortNameAndUseLevelSpinner" Width="6px" />
-                <ColumnDefinition Name="UseLevelSpinnerColumn" Width="Auto" />
-                <ColumnDefinition Name="ChevronColumn" Width="Auto" />
+                <ColumnDefinition Name="UseLevelSpinnerColumn" Width="50px" />
+                <ColumnDefinition Name="ChevronColumn" Width="20px" />
             </Grid.ColumnDefinitions>
 
             <interactivity:Interaction.Triggers>
@@ -89,7 +90,7 @@
             <!--  The name of this port  -->
             <TextBlock x:Name="PortNameTextBox"
                        Grid.Column="3"
-                       Width="Auto"
+                       Width="6.5px"
                        Margin="0,1,5,0"
                        VerticalAlignment="Center"
                        FontFamily="{StaticResource ArtifaktElementRegular}"

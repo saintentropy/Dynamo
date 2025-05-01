@@ -1,4 +1,4 @@
-﻿
+
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -37,7 +37,7 @@ namespace CoreNodeModelsWpf.Nodes
                 Height = Configurations.PortHeightInPixels * 3
             };
 
-            nodeView.inputGrid.Children.Add(gradientImage);
+            //nodeView.inputGrid.Children.Add(gradientImage);
 
             colorRangeNode.RequestChangeColorRange += UpdateColorRange;
 

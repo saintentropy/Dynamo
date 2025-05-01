@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 using Dynamo.Controls;
@@ -15,7 +15,7 @@ namespace Dynamo.Wpf
         {
             cbe = new CodeBlockEditor(nodeView);
             
-            nodeView.inputGrid.Children.Add(cbe);
+            //nodeView.inputGrid.Children.Add(cbe);
             Grid.SetColumn(cbe, 0);
             Grid.SetRow(cbe, 0);
 

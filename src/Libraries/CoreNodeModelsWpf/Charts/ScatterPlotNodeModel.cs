@@ -351,7 +351,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             scatterPlotControl = new ScatterPlotControl(model);
-            nodeView.inputGrid.Children.Add(scatterPlotControl);
+            //nodeView.inputGrid.Children.Add(scatterPlotControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

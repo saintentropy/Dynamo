@@ -340,7 +340,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             heatSeriesControl = new HeatSeriesControl(model);
-            nodeView.inputGrid.Children.Add(heatSeriesControl);
+            //nodeView.inputGrid.Children.Add(heatSeriesControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

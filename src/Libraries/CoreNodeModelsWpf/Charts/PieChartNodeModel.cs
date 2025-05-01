@@ -303,7 +303,7 @@ namespace CoreNodeModelsWpf.Charts
             this.model = model;
             this.view = nodeView;
             pieChartControl = new PieChartControl(model);
-            nodeView.inputGrid.Children.Add(pieChartControl);
+            //nodeView.inputGrid.Children.Add(pieChartControl);
 
             MenuItem exportImage = new MenuItem();
             exportImage.Header = "Export Chart as Image";

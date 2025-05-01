@@ -107,9 +107,9 @@ namespace Watch3DNodeModelsWpf
             var mi = new MenuItem { Header = Resources.ZoomToFit };
             mi.Click += mi_Click;
 
-            nodeView.MainContextMenu.Items.Add(mi);
+            //nodeView.MainContextMenu.Items.Add(mi);
 
-            nodeView.centralGrid.Children.Add(watch3DView);
+            //nodeView.centralGrid.Children.Add(watch3DView);
             Grid.SetRow(watch3DView, 1);
 
 
@@ -147,7 +147,7 @@ namespace Watch3DNodeModelsWpf
                     ShowWarningForRemovingInPort = false
                 });
 
-            nodeView.centralGrid.Children.Add(wrapPanel);
+            //nodeView.centralGrid.Children.Add(wrapPanel);
             Grid.SetRow(wrapPanel, 0);
         }
 
