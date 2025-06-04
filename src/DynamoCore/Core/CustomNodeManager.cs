@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Xml;
 using Dynamo.Engine;
 using Dynamo.Engine.NodeToCode;
 using Dynamo.Exceptions;
@@ -25,6 +19,14 @@ using Dynamo.Properties;
 using Dynamo.Selection;
 using Dynamo.Utilities;
 using ProtoCore.AST.AssociativeAST;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Threading;
+using System.Xml;
 using Symbol = Dynamo.Graph.Nodes.CustomNodes.Symbol;
 
 namespace Dynamo.Core
@@ -47,11 +49,15 @@ namespace Dynamo.Core
             this.nodeFactory = nodeFactory;
             this.migrationManager = migrationManager;
             this.libraryServices = libraryServices;
+
+            //Todo decide were we want to store this
+            customNodeInfoCache = new JsonCache<CustomNodeInfo> ("C:\\Temp\\CustomNodeInforCache.temp");
         }
 
         #region Fields and properties
 
         private LibraryServices libraryServices;
+        private JsonCache<CustomNodeInfo> customNodeInfoCache;
 
         private readonly OrderedSet<Guid> loadOrder = new OrderedSet<Guid>();
 
@@ -684,6 +690,18 @@ namespace Dynamo.Core
             Exception ex;
             try
             {
+                var fileinfo = new FileInfo(path);
+                var lastWriteTime = fileinfo.LastWriteTimeUtc;
+                var length = fileinfo.Length;
+
+                //create a fast check for checking if the file has been loaded before.  Could also do a file hash but we don't care too much about false negatives
+                var key = path + lastWriteTime.ToString() + length.ToString();
+
+                if (customNodeInfoCache.TryGet(key, out info))
+                {
+                    return true;
+                }
+
                 if (DynamoUtilities.PathHelper.isValidJson(path, out jsonDoc, out ex))
                 {
                     if (!WorkspaceInfo.FromJsonDocument(jsonDoc, path, isTestMode, false, AsLogger(), out header))
@@ -710,6 +728,9 @@ namespace Dynamo.Core
                     header.Description,
                     path,
                     header.IsVisibleInDynamoLibrary);
+
+                customNodeInfoCache.Set(key, info);
+
                 return true;
             }
             catch (Exception e)
@@ -1419,4 +1440,67 @@ namespace Dynamo.Core
             this.loadedCustomNodes.ToList().ForEach(x => Uninitialize(x.Value.FunctionId));
         }
     }
+
+    //Location temporary
+    public class JsonCache<T> : IDisposable
+    {
+        private readonly string cacheFilePath;
+        private readonly Dictionary<string, T> cache = new();
+        private bool dirty = false;
+        private readonly Timer flushTimer;
+
+        public JsonCache(string filePath)
+        {
+            cacheFilePath = filePath;
+            Load();
+            // Not sure if this covers all cases.  Can also add flush to Dispose
+            AppDomain.CurrentDomain.ProcessExit += (s, e) => FlushIfDirty();
+        }
+
+        public void Set(string key, T value)
+        {
+            cache[key] = value;
+            dirty = true;
+        }
+
+        public bool TryGet(string key, out T value) => cache.TryGetValue(key, out value);
+
+        public void Remove(string key)
+        {
+            if (cache.Remove(key))
+                dirty = true;
+        }
+
+        private void Load()
+        {
+            if (File.Exists(cacheFilePath))
+            {
+                var json = File.ReadAllText(cacheFilePath);
+                var loaded = JsonSerializer.Deserialize<Dictionary<string, T>>(json);
+                if (loaded != null)
+                    foreach (var kv in loaded)
+                        cache[kv.Key] = kv.Value;
+            }
+        }
+
+        private void FlushIfDirty()
+        {
+            if (dirty)
+                Flush();
+        }
+
+        public void Flush()
+        {
+            var json = JsonSerializer.Serialize(cache, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(cacheFilePath, json);
+            dirty = false;
+        }
+
+        public void Dispose()
+        {
+            flushTimer?.Dispose();
+            Flush();
+        }
+    }
+
 }
