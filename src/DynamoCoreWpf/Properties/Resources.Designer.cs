@@ -3859,7 +3859,7 @@ namespace Dynamo.Wpf.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to It seems like Autodesk Identity Manager is not set up on your system. To ensure full access to all features, please sign in to your Autodesk account using Autodesk Identity Manager.
-        ///#Download and install=https://manage.autodesk.com/products/updates it here or through Autodesk Access, then sign in..
+        ///#Download and install=https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/7zbgTemIhA3ltRs4eACL0g.html it here or through Autodesk Access, then sign in..
         /// </summary>
         public static string IDSDKErrorMessage {
             get {
@@ -4613,6 +4613,15 @@ namespace Dynamo.Wpf.Properties {
         public static string MessageFailedToAddFile {
             get {
                 return ResourceManager.GetString("MessageFailedToAddFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to add the following files:\n\n {0}.
+        /// </summary>
+        public static string MessageFailedToAddMultipleFiles {
+            get {
+                return ResourceManager.GetString("MessageFailedToAddMultipleFiles", resourceCulture);
             }
         }
         
@@ -6130,6 +6139,15 @@ namespace Dynamo.Wpf.Properties {
         public static string PackageDownloadStateStarting {
             get {
                 return ResourceManager.GetString("PackageDownloadStateStarting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \n\nDuplicate assemblies found: {0}.
+        /// </summary>
+        public static string PackageDuplicateAssembliesFoundMessage {
+            get {
+                return ResourceManager.GetString("PackageDuplicateAssembliesFoundMessage", resourceCulture);
             }
         }
         
@@ -10006,15 +10024,6 @@ namespace Dynamo.Wpf.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sign in to access online services that integrate with your desktop software..
-        /// </summary>
-        public static string SignInOfflineButtonContentToolTip {
-            get {
-                return ResourceManager.GetString("SignInOfflineButtonContentToolTip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sign In.
         /// </summary>
         public static string SignInButtonText {
@@ -10029,6 +10038,15 @@ namespace Dynamo.Wpf.Properties {
         public static string SigningInButtonText {
             get {
                 return ResourceManager.GetString("SigningInButtonText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable Network Mode to be able to sign in..
+        /// </summary>
+        public static string SignInOfflineButtonContentToolTip {
+            get {
+                return ResourceManager.GetString("SignInOfflineButtonContentToolTip", resourceCulture);
             }
         }
         
@@ -11071,6 +11089,24 @@ namespace Dynamo.Wpf.Properties {
         public static string ZoomLevel {
             get {
                 return ResourceManager.GetString("ZoomLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Connected to the internet..
+        /// </summary>
+        public static string OnlineStatusTooltip {
+            get {
+                return ResourceManager.GetString("OnlineStatusTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not connected to the internet..
+        /// </summary>
+        public static string OfflineStatusTooltip {
+            get {
+                return ResourceManager.GetString("OfflineStatusTooltip", resourceCulture);
             }
         }
     }
