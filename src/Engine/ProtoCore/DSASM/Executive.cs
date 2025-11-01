@@ -2440,9 +2440,9 @@ namespace ProtoCore.DSASM
                     SymbolNode symbol = GetSymbolNode(blockId, op2.ClassIndex, op1.SymbolIndex);
                     opPrev = rmem.SetSymbolValueAndGetPreviousValue(symbol, opVal);
 
-
-                    exe.UpdatedSymbols.Add(symbol);
 #if DEBUG
+                    exe.UpdatedSymbols.Add(symbol);
+
                     if (IsDebugRun())
                     {
                         logWatchWindow(blockId, op1.SymbolIndex);
@@ -2461,9 +2461,9 @@ namespace ProtoCore.DSASM
                     var staticMember = GetSymbolNode(blockId, Constants.kGlobalScope, op1.StaticVariableIndex);
                     opPrev = rmem.SetSymbolValueAndGetPreviousValue(staticMember, opVal);
 
-
-                    exe.UpdatedSymbols.Add(staticMember);
 #if DEBUG
+                    exe.UpdatedSymbols.Add(staticMember);
+
                     if (IsDebugRun())
                     {
                         logWatchWindow(blockId, op1.StaticVariableIndex);
@@ -3385,7 +3385,6 @@ namespace ProtoCore.DSASM
                 }
             }
 
-            rmem.Heap.GC();
             ++pc;
             return tempSvData;
         }
